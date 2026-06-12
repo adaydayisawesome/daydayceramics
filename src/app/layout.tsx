@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Lora, Anton } from "next/font/google";
+import { Anton, Figtree, Lora, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const lora = Lora({
@@ -15,6 +15,21 @@ const anton = Anton({
   display: "swap",
 });
 
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  weight: ["800"],
+  style: ["italic"],
+  display: "swap",
+});
+
+const figtree = Figtree({
+  variable: "--font-figtree",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Day Day Ceramics",
   description: "Handmade ceramics, thrown one at a time.",
@@ -26,7 +41,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${lora.variable} ${anton.variable} h-full`}>
+    <html
+      lang="en"
+      className={`${lora.variable} ${anton.variable} ${playfair.variable} ${figtree.variable} h-full`}
+    >
       <body className="min-h-full antialiased">{children}</body>
     </html>
   );
