@@ -96,10 +96,12 @@
 
 @keyframes cup-slide {
   from {
-    transform: translateX(-96%);
+    opacity: 0;
+    transform: translateX(105%);
   }
   to {
-    transform: translateX(-38%);
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -130,7 +132,8 @@
 }
 
 .d-hover-cup {
-  transform: translateX(-96%);
+  opacity: 0;
+  transform: translateX(105%);
   animation: cup-slide 0.7s ease-in-out forwards;
 }
 
