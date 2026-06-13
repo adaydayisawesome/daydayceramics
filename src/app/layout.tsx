@@ -26,9 +26,9 @@ const playfair = Playfair_Display({
 const figtree = Figtree({
   variable: "--font-figtree",
   subsets: ["latin"],
-  // 700 added so the bold "Huilin Dai" in the About interstitial renders a real
-  // bold weight rather than a synthesized faux-bold.
-  weight: ["400", "700"],
+  // 600 (footer "DAY DAY CERAMICS" semibold) and 700 (bold "Huilin" in the
+  // About interstitial) added so these render real weights, not faux-bold.
+  weight: ["400", "600", "700"],
   display: "swap",
 });
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { AboutInterstitial } from "./about-interstitial";
 import { CREAM, HOVER_COLOR_MS, INK } from "./constants";
+import { HomeFooter } from "./home-footer";
 import { LetterAHover } from "./letter-a-hover";
 import { LetterDHover } from "./letter-d-hover";
 import { LetterYHover } from "./letter-y-hover";
@@ -49,6 +50,8 @@ export function DayLetters() {
           onOpen={() => setAboutOpen(true)}
         />
       </div>
+
+      <HomeFooter active={hovered} />
 
       <AboutInterstitial open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </main>
