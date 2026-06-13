@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { AboutInterstitial } from "./about-interstitial";
 import { CREAM, HOVER_COLOR_MS, INK } from "./constants";
 import { LetterAHover } from "./letter-a-hover";
 import { LetterDHover } from "./letter-d-hover";
@@ -11,6 +12,7 @@ type ActiveLetter = "d" | "a" | "y" | null;
 
 export function DayLetters() {
   const [active, setActive] = useState<ActiveLetter>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const hovered = active !== null;
 
   useEffect(() => {
@@ -41,8 +43,14 @@ export function DayLetters() {
       </div>
 
       <div className="flex h-screen w-full shrink-0 snap-start items-center justify-center md:h-full md:w-auto md:flex-none">
-        <LetterYHover active={active === "y"} onActiveChange={setLetter("y")} />
+        <LetterYHover
+          active={active === "y"}
+          onActiveChange={setLetter("y")}
+          onOpen={() => setAboutOpen(true)}
+        />
       </div>
+
+      <AboutInterstitial open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </main>
   );
 }

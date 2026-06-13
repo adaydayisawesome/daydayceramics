@@ -26,7 +26,9 @@ const playfair = Playfair_Display({
 const figtree = Figtree({
   variable: "--font-figtree",
   subsets: ["latin"],
-  weight: ["400"],
+  // 700 added so the bold "Huilin Dai" in the About interstitial renders a real
+  // bold weight rather than a synthesized faux-bold.
+  weight: ["400", "700"],
   display: "swap",
 });
 

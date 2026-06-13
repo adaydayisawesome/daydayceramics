@@ -14,9 +14,14 @@ import {
 type LetterYHoverProps = {
   active: boolean;
   onActiveChange: (active: boolean) => void;
+  onOpen: () => void;
 };
 
-export function LetterYHover({ active, onActiveChange }: LetterYHoverProps) {
+export function LetterYHover({
+  active,
+  onActiveChange,
+  onOpen,
+}: LetterYHoverProps) {
   const [contentReady, setContentReady] = useState(false);
 
   useEffect(() => {
@@ -39,8 +44,11 @@ export function LetterYHover({ active, onActiveChange }: LetterYHoverProps) {
       onMouseLeave={() => onActiveChange(false)}
     >
       <div className="relative inline-flex">
-        <span
-          className="relative z-10 inline-flex transition-colors ease-in-out"
+        <button
+          type="button"
+          aria-label="About"
+          onClick={onOpen}
+          className="relative z-10 inline-flex cursor-pointer bg-transparent p-0 transition-colors ease-in-out"
           style={{
             color: active ? CREAM : INK,
             transitionDuration: `${HOVER_COLOR_MS}ms`,
@@ -53,7 +61,7 @@ export function LetterYHover({ active, onActiveChange }: LetterYHoverProps) {
           >
             Y
           </span>
-        </span>
+        </button>
 
         {contentReady && (
           <div
