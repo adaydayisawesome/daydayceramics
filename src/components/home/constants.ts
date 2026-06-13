@@ -6,8 +6,15 @@ export const HOVER_COLOR_MS = 700;
 /** Pause after color swap begins before cup/text reveal */
 export const HOVER_CONTENT_DELAY_MS = 200;
 
-export const letterSize =
-  "min(calc((100vh - 60px) / 1.074), calc((100vw - 280px) / 2.1))";
+/**
+ * Letter font size. Resolved from a CSS custom property so the value can be
+ * swapped per breakpoint (see globals.css):
+ *   desktop : sized to the viewport height, leaving room for the side reveal
+ *   mobile  : sized to fit all three letters comfortably on one row
+ * Both the glyphs and the em-based reveal (cup/gradient) read this same value,
+ * so the cup keeps emerging from the counter correctly at any size.
+ */
+export const letterSize = "var(--letter-size)";
 
 export const letterStyle = {
   fontSize: letterSize,
