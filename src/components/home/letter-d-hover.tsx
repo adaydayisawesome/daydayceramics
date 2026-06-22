@@ -107,7 +107,7 @@ export function LetterDHover({
                 right→left, lands centered on the 1st stroke with its left
                 side hanging out past the D into the background.
               */}
-              <div className="absolute top-[35%] right-[0.21em] left-[-0.13em] h-[0.33em] overflow-hidden">
+              <div className="absolute top-[33%] right-[0.21em] left-[-0.13em] h-[0.38em] overflow-hidden">
                 <div className="d-hover-cup relative h-full w-full">
                   {/* 360° spinner: D's own turntable object with the same baked
                       grainy B&W halftone "print" treatment as A. Falls back to
