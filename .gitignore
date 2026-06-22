@@ -49,3 +49,8 @@ next-env.d.ts
 # player reads the sprite) and are kept out of git.
 .spin-tmp/
 /public/images/spin/*/frames/
+
+# asset-pipeline: raw photo/video drop zone (local-only intake). Processed,
+# optimized web assets are written into /public/images and ARE committed; the
+# heavy originals here never are. See tools/asset-pipeline/README.md.
+/assets-incoming/
