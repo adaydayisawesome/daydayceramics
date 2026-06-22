@@ -10,9 +10,10 @@ npm run import-assets
 ## How it works
 
 1. You drop raw files into the local-only **drop zone** `assets-incoming/`.
-2. `npm run import-assets` walks that folder, optimizes photos with `sharp`,
-   runs the [spin pipeline](../spin-pipeline/README.md) on any 360 video, and
-   records each product's resolved asset paths into
+2. `npm run import-assets` walks that folder, **background-removes** each photo
+   to transparent + auto-crops it and optimizes with `sharp`, runs the
+   [spin pipeline](../spin-pipeline/README.md) on any 360 video, and records
+   each product's resolved asset paths into
    `src/lib/product-assets.generated.json`.
 3. `src/lib/products.ts` layers that generated map onto the hand-authored
    catalog at load time, so the grid/detail pages pick up the new assets.
@@ -57,7 +58,9 @@ folders for every catalog product so you can see exactly where to drop files.
 
 - ≥ **1600px** on the long edge (output is capped to ~1600px WebP).
 - Consistent, even lighting across the batch.
-- White or transparent background ideal (alpha is preserved through to WebP).
+- Plain, contrasting background ideal — the importer **removes the background to
+  transparent** by default, so a clean backdrop mattes best (a soft studio
+  shadow is part of the background and gets removed too).
 - Object centered and fully in frame.
 
 **360° turntable video**
@@ -79,6 +82,26 @@ folders for every catalog product so you can see exactly where to drop files.
 `hoverType` is set by precedence: **spin** present → `spin360`; else **alt**
 present → `alternateAngle`; else left as authored (`staticOnly`).
 
+## Transparent product photos (default)
+
+Product photos (`main`, `alt`) are **background-removed to transparent and
+auto-cropped by default**, using the same matter as the spin pipeline
+(`@imgly/background-removal-node`) plus an alpha bounding-box crop (shared helper
+`matte.mjs`). This makes each piece **float on the page** — no backdrop box, no
+drop shadow — exactly like the transparent 360 spin frames, so the grid stays
+seamless on the pure-white layout.
+
+Opt out per run with **`--no-matte`** (alias `--keep-bg`) when a photo is already
+cut out or should keep its background:
+
+```bash
+npm run import-assets -- --no-matte
+```
+
+> Matting downloads an ONNX model on first run (network required); the model
+> then ships cached in the package for offline use. If matting fails you get a
+> clean warning suggesting `--no-matte`.
+
 ## Command + flags
 
 ```bash
@@ -95,6 +118,7 @@ npm run import-assets -- --force            # reprocess even if outputs look up 
 | `--only <collection/product>` | — | Restrict to a single product folder. |
 | `--scaffold` | off | Create empty `assets-incoming/<collection>/<product>/` for every catalog product (+ README), then import. |
 | `--force` | off | Ignore the mtime "unchanged" skip check and reprocess. |
+| `--no-matte` / `--keep-bg` | off | Keep the photo's original background instead of matting to transparent. |
 | `--max-edge <px>` | `1600` | Long-edge cap for optimized photos. |
 | `--quality <1..100>` | `82` | WebP quality for photos. |
 | `--spin-frames <N>` | pipeline default | Frames sampled for the spin (forwarded to `build.mjs`). |

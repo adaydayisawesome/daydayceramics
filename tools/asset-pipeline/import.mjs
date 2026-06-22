@@ -13,6 +13,11 @@
  *       alt.<ext>    optional 2nd angle  -> public/images/products/.../alt.webp   (alternateImage)
  *       spin.<ext>   optional 360 video  -> public/images/spin/<product>/         (spinMedia, COLOR)
  *
+ * Product photos (main/alt) are background-removed to TRANSPARENT and auto-
+ * cropped BY DEFAULT (same matter as the spin pipeline) so pieces float on the
+ * page with no backdrop box or drop shadow. Pass --no-matte / --keep-bg to keep
+ * the original background (e.g. for photos that are already cut out).
+ *
  * hoverType precedence per product: spin present -> "spin360";
  *   else alt present -> "alternateAngle"; else left as authored / "staticOnly".
  *
@@ -29,6 +34,7 @@
  *   --scaffold                Create empty assets-incoming/<collection>/<product>/ for every
  *                             catalog product (+ a README), then continue importing.
  *   --force                   Ignore the mtime skip check and reprocess inputs.
+ *   --no-matte / --keep-bg    Keep the photo's original background (default: matte to transparent).
  *   --max-edge <px>           Long-edge cap for optimized photos (default 1600).
  *   --quality <1..100>        WebP quality for photos (default 82).
  *   --spin-frames <N>         Frames to sample for the spin (forwarded to build.mjs).
@@ -51,6 +57,8 @@ import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import sharp from "sharp";
+
+import { matteCropToWebp } from "./matte.mjs";
 
 sharp.simd(false);
 
@@ -103,6 +111,11 @@ const MAX_EDGE = args["max-edge"] ? parseInt(args["max-edge"], 10) : 1600;
 const QUALITY = args.quality ? parseInt(args.quality, 10) : 82;
 const SPIN_FRAMES = args["spin-frames"] ? String(args["spin-frames"]) : null;
 const SPIN_MATTE = args["spin-matte"] ? String(args["spin-matte"]) : null;
+// Product photos are background-removed to transparent + auto-cropped BY
+// DEFAULT so pieces float on the page (no backdrop box / shadow), matching the
+// transparent spin frames. Opt out with --no-matte / --keep-bg for photos that
+// are already cut out or should keep their background.
+const KEEP_BG = Boolean(args["no-matte"] || args["keep-bg"]);
 
 const tag = DRY_RUN ? "[import:dry]" : "[import]";
 function log(...m) {
@@ -277,33 +290,51 @@ async function optimizeImage(srcPath, outPath, label) {
     summary.skipped++;
     return true;
   }
+  const mode = KEEP_BG ? "keep background" : "matte → transparent";
   if (DRY_RUN) {
-    log(`  ${label}: would optimize ${rel(srcPath)} -> ${rel(outPath)}`);
+    log(`  ${label}: would optimize (${mode}) ${rel(srcPath)} -> ${rel(outPath)}`);
     summary.images++;
     return true;
   }
   try {
     mkdirSync(dirname(outPath), { recursive: true });
-    const pipeline = sharp(srcPath, { failOn: "none" })
-      .rotate() // respect EXIF orientation
-      .resize({
-        width: MAX_EDGE,
-        height: MAX_EDGE,
-        fit: "inside",
-        withoutEnlargement: true,
-      })
-      .webp({ quality: QUALITY, alphaQuality: 100 });
-    const info = await pipeline.toFile(outPath);
+    let info;
+    if (KEEP_BG) {
+      // Keep the original background; just orient, downscale, and encode.
+      info = await sharp(srcPath, { failOn: "none" })
+        .rotate() // respect EXIF orientation
+        .resize({
+          width: MAX_EDGE,
+          height: MAX_EDGE,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .webp({ quality: QUALITY, alphaQuality: 100 })
+        .toFile(outPath);
+    } else {
+      // Default: remove the background to transparent + auto-crop to the alpha
+      // bbox (shared helper, same matter as the spin pipeline) so the piece
+      // floats with no backdrop box or shadow.
+      info = await matteCropToWebp(srcPath, outPath, {
+        maxEdge: MAX_EDGE,
+        quality: QUALITY,
+        padPct: 4,
+      });
+    }
     log(
       `  ${label}: wrote ${rel(outPath)} (${info.width}x${info.height}, ${(
         info.size / 1024
-      ).toFixed(0)}kB)`
+      ).toFixed(0)}kB, ${mode})`
     );
     summary.images++;
     return true;
   } catch (e) {
     addWarning(
       `failed to optimize ${rel(srcPath)} (${e.message}). ` +
+        (KEEP_BG
+          ? ""
+          : "Matting uses @imgly/background-removal-node (model download needs " +
+            "network on first run); pass --no-matte to keep the background. ") +
         (extOf(srcPath) === "heic"
           ? "HEIC may need a libheif-enabled sharp/libvips build."
           : "")
