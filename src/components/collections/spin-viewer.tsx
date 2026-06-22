@@ -134,12 +134,12 @@ export function SpinViewer({
       <div
         aria-hidden
         className="absolute inset-0 flex items-center justify-center p-[10%]"
+        style={{ containerType: "size" }}
       >
         <div
           className={grayscale ? "grayscale" : ""}
           style={{
-            width: "100%",
-            maxHeight: "100%",
+            width: `min(100cqw, calc(100cqh * ${spin.frameWidth} / ${spin.frameHeight}))`,
             aspectRatio: `${spin.frameWidth} / ${spin.frameHeight}`,
             backgroundImage: `url(${spin.spriteUrl})`,
             backgroundRepeat: "no-repeat",
