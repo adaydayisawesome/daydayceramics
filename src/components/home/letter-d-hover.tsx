@@ -62,8 +62,8 @@ export function LetterDHover({
     >
       <div className="relative inline-flex">
         <Link
-          href="/collections/tableware"
-          aria-label="Tableware"
+          href="/collections/darling-babies"
+          aria-label="Darling Babies"
           onClick={handleClick}
           className="relative z-10 inline-flex no-underline transition-colors ease-in-out"
           style={{

@@ -139,10 +139,9 @@ export function AboutInterstitial({ open, onClose }: AboutInterstitialProps) {
               are functional, carefully finished, and meet my current standards
               in form, glaze, and usability.
             </p>
-            {/* Extra blank line of space before the CTA, then "View all" →.
-                ASSUMPTION: Darling Babies maps to /collections/tableware. */}
+            {/* Extra blank line of space before the CTA, then "View all" →. */}
             <Link
-              href="/collections/tableware"
+              href="/collections/darling-babies"
               className={`${bodyClass} group mt-10 inline-flex items-center gap-2 text-[#413E3F] no-underline transition-opacity hover:opacity-70`}
             >
               View all
@@ -168,10 +167,9 @@ export function AboutInterstitial({ open, onClose }: AboutInterstitialProps) {
               a little wonky, a little weird, or a little defeated, but they are
               honest little things.
             </p>
-            {/* Extra blank line of space before the CTA, then "View all" →.
-                ASSUMPTION: Ugly Babies maps to /collections/vases. */}
+            {/* Extra blank line of space before the CTA, then "View all" →. */}
             <Link
-              href="/collections/vases"
+              href="/collections/ugly-babies"
               className={`${bodyClass} group mt-10 inline-flex items-center gap-2 text-[#413E3F] no-underline transition-opacity hover:opacity-70`}
             >
               View all

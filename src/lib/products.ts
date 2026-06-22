@@ -48,8 +48,8 @@ export type Collection = {
 
 export const collections: Collection[] = [
   {
-    slug: "tableware",
-    title: "Tableware",
+    slug: "darling-babies",
+    title: "Darling Babies",
     tagline: "Everyday pieces for the table — thrown, trimmed, and glazed by hand.",
     products: [
       {
@@ -139,8 +139,8 @@ export const collections: Collection[] = [
     ],
   },
   {
-    slug: "vases",
-    title: "Vases",
+    slug: "ugly-babies",
+    title: "Ugly Babies",
     tagline: "Sculptural vessels for stems, branches, and quiet corners.",
     products: [
       {
