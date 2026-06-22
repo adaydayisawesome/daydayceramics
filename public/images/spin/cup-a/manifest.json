@@ -1,0 +1,14 @@
+{
+  "name": "cup-a",
+  "source": "video_20260618200845.mp4",
+  "createdAt": "2026-06-22T03:08:50.046Z",
+  "frameCount": 24,
+  "frameWidth": 617,
+  "frameHeight": 480,
+  "cols": 5,
+  "rows": 5,
+  "sprite": "sprite.webp",
+  "sequence": "frames/frame_%03d.webp",
+  "turns": 1,
+  "settleFrame": 0
+}

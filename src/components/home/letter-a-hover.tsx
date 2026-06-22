@@ -4,13 +4,17 @@ import Link from "next/link";
 import { useEffect, useState, type MouseEvent } from "react";
 
 import {
+  A_SPIN,
   CREAM,
   HOVER_COLOR_MS,
   HOVER_CONTENT_DELAY_MS,
   INK,
   letterSize,
   letterStyle,
+  SPIN_ASSET,
+  SPIN_FALLBACK,
 } from "./constants";
+import { SpinningObject } from "./spinning-object";
 
 type LetterAHoverProps = {
   active: boolean;
@@ -124,12 +128,17 @@ export function LetterAHover({
                 }}
               >
                 <div className="d-hover-cup relative h-full w-full">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/images/tea-cup.png"
-                    alt=""
+                  {/* 360° spinner: rotates as it slides out, then settles on
+                      A's chosen front frame. Falls back to the static cup if
+                      the spin asset is missing. */}
+                  <SpinningObject
+                    name={SPIN_ASSET}
+                    fallbackSrc={SPIN_FALLBACK}
+                    active={active}
+                    grayscale
+                    rotations={A_SPIN.rotations}
+                    settleFrame={A_SPIN.settleFrame}
                     className="absolute top-0 left-0 block h-full w-auto max-w-none"
-                    draggable={false}
                   />
                 </div>
               </div>

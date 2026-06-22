@@ -5,12 +5,16 @@ import { useEffect, useState, type MouseEvent } from "react";
 
 import {
   CREAM,
+  D_SPIN,
   HOVER_COLOR_MS,
   HOVER_CONTENT_DELAY_MS,
   INK,
   letterSize,
   letterStyle,
+  SPIN_ASSET,
+  SPIN_FALLBACK,
 } from "./constants";
+import { SpinningObject } from "./spinning-object";
 
 type LetterDHoverProps = {
   active: boolean;
@@ -105,12 +109,17 @@ export function LetterDHover({
               */}
               <div className="absolute top-[35%] right-[0.21em] left-[-0.13em] h-[0.33em] overflow-hidden">
                 <div className="d-hover-cup relative h-full w-full">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/images/tea-cup.png"
-                    alt=""
+                  {/* 360° spinner: shares the same turntable asset as A but
+                      settles on D's own front frame. Falls back to the static
+                      cup if the spin asset is missing. */}
+                  <SpinningObject
+                    name={SPIN_ASSET}
+                    fallbackSrc={SPIN_FALLBACK}
+                    active={active}
+                    grayscale
+                    rotations={D_SPIN.rotations}
+                    settleFrame={D_SPIN.settleFrame}
                     className="absolute top-0 left-0 block h-full w-auto max-w-none"
-                    draggable={false}
                   />
                 </div>
               </div>

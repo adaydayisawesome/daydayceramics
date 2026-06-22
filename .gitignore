@@ -42,3 +42,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# spin-pipeline: intermediate working dir + redundant per-frame exports.
+# The runtime sprite sheet (sprite.webp) + manifest.json ARE committed so the
+# spin deploys; the individual frames/ are only an intermediate output (the
+# player reads the sprite) and are kept out of git.
+.spin-tmp/
+/public/images/spin/*/frames/
