@@ -39,6 +39,8 @@ export const SLIDE_MS = 700;
  *       so settleFrame steps in ~15° increments. Tune to taste.
  */
 export const SPIN_ASSET = "cup-a";
+/** D has its own turntable object (same baked halftone "print" treatment as A). */
+export const D_SPIN_ASSET = "cup-d";
 export const SPIN_FALLBACK = "/images/tea-cup.png";
 
 export const A_SPIN = {
@@ -48,5 +50,5 @@ export const A_SPIN = {
 
 export const D_SPIN = {
   rotations: 1,
-  settleFrame: 6,
+  settleFrame: 0,
 } as const;

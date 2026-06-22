@@ -6,12 +6,12 @@ import { useEffect, useState, type MouseEvent } from "react";
 import {
   CREAM,
   D_SPIN,
+  D_SPIN_ASSET,
   HOVER_COLOR_MS,
   HOVER_CONTENT_DELAY_MS,
   INK,
   letterSize,
   letterStyle,
-  SPIN_ASSET,
   SPIN_FALLBACK,
 } from "./constants";
 import { SpinningObject } from "./spinning-object";
@@ -109,13 +109,14 @@ export function LetterDHover({
               */}
               <div className="absolute top-[35%] right-[0.21em] left-[-0.13em] h-[0.33em] overflow-hidden">
                 <div className="d-hover-cup relative h-full w-full">
-                  {/* 360° spinner: shares the same turntable asset as A but
-                      settles on D's own front frame. Falls back to the static
-                      cup if the spin asset is missing. */}
+                  {/* 360° spinner: D's own turntable object with the same baked
+                      grainy B&W halftone "print" treatment as A. Falls back to
+                      the static cup if the spin asset is missing. */}
                   <SpinningObject
-                    name={SPIN_ASSET}
+                    name={D_SPIN_ASSET}
                     fallbackSrc={SPIN_FALLBACK}
                     active={active}
+                    print
                     grayscale
                     rotations={D_SPIN.rotations}
                     settleFrame={D_SPIN.settleFrame}

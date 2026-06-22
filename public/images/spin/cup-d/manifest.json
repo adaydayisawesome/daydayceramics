@@ -1,0 +1,15 @@
+{
+  "name": "cup-d",
+  "source": "video_20260618202404.mp4",
+  "createdAt": "2026-06-22T06:35:24.760Z",
+  "frameCount": 24,
+  "frameWidth": 468,
+  "frameHeight": 480,
+  "cols": 5,
+  "rows": 5,
+  "sprite": "sprite.webp",
+  "sequence": "frames/frame_%03d.webp",
+  "turns": 1,
+  "settleFrame": 0,
+  "spritePrint": "sprite-print.webp"
+}
