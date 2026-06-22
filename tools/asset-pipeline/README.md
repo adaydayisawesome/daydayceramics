@@ -9,14 +9,15 @@ npm run import-assets
 
 ## How it works
 
-1. You drop raw files into the local-only **drop zone** `assets-incoming/`.
+1. You drop raw files into the local-only **drop zone** `assets-incoming/`,
+   grouped by **collection → category → piece**.
 2. `npm run import-assets` walks that folder, **background-removes** each photo
    to transparent + auto-crops it and optimizes with `sharp`, runs the
    [spin pipeline](../spin-pipeline/README.md) on any 360 video, and records
-   each product's resolved asset paths into
-   `src/lib/product-assets.generated.json`.
-3. `src/lib/products.ts` layers that generated map onto the hand-authored
-   catalog at load time, so the grid/detail pages pick up the new assets.
+   each piece as a full entry into `src/lib/product-assets.generated.json`.
+3. `src/lib/products.ts` **merges** that generated layer onto the hand-authored
+   seed catalog at load time, so the grid/detail pages pick up the new assets
+   and any brand-new pieces.
 
 The drop zone (`assets-incoming/`) is **gitignored** — the heavy originals never
 get committed. Only the processed outputs under `public/images/` are committed.
@@ -24,23 +25,47 @@ get committed. Only the processed outputs under `public/images/` are committed.
 ## Drop-zone structure
 
 ```
-assets-incoming/<collection-slug>/<product-slug>/
+assets-incoming/<collection>/<category>/<piece>/
     main.<ext>    # required hero photo  -> defaultImage
     alt.<ext>     # optional 2nd angle   -> alternateImage / "alternateAngle" hover
     spin.<ext>    # optional 360 video   -> "spin360" hover (COLOR)
 ```
 
-- `<collection-slug>` / `<product-slug>` must match the catalog in
-  `src/lib/products.ts` (e.g. `darling-babies/dinner-plate`,
-  `ugly-babies/bud-vase`). A folder whose slug isn't in the catalog still gets
-  its images optimized, but the importer prints a **WARNING** and does not touch
-  the catalog.
+- **`<collection>`** — one of the two collection slugs: `darling-babies`,
+  `ugly-babies`.
+- **`<category>`** — one of the six category slugs from the `CATEGORIES`
+  registry in `src/lib/products.ts`: `bowls`, `cups`, `mugs`, `coffee-drippers`,
+  `plates`, `objects`. Category is an **internal tag only** — collection pages
+  render a single flat grid each and never show category section headers.
+  Unknown collection/category folders are skipped with a **WARNING**.
+- **`<piece>`** — a kebab-case folder name **you** pick. **The piece folder name
+  becomes the product**: its `slug` is the folder name (kept as-is) and its
+  `title` is the humanized form (`ramen-bowl-blue` → "Ramen Bowl Blue"). Its
+  `category` is the parent folder and `collection` the grandparent.
 - Files are matched by the `main` / `alt` / `spin` basename, **case-insensitive**
   (`Main.JPG` works). A lone image with any other name is treated as `main`, but
-  explicit names are preferred.
+  explicit names are preferred. A piece **requires a `main.*`** to be imported.
 
-Run `npm run import-assets -- --scaffold` once to create empty per-product
-folders for every catalog product so you can see exactly where to drop files.
+Run `npm run import-assets -- --scaffold` once to create the category folders
+for both collections so you can see exactly where to drop new piece folders.
+
+## Catalog merge (non-destructive)
+
+`products.ts` keeps a hand-authored **seed** catalog and unions it with the
+generated layer by `"<collection>/<slug>"`:
+
+- A generated piece that **matches a seed product** supplies its `category` +
+  asset fields (`defaultImage` / `alternateImage` / `spinMedia` / `hoverType`).
+  Human-edited fields (`price`, `isSold`, `shopify*`, `title`) stay authoritative
+  on the seed.
+- A generated piece with **no seed match** is **appended** as a new product in
+  its collection's grid.
+- **`price` / `isSold`** default to `0` / `false` for a freshly imported piece
+  and are **preserved across re-imports** — edit them in
+  `product-assets.generated.json` and the importer never clobbers them. (Shopify
+  IDs stay `null`.)
+
+With an empty generated file the live demo catalog renders exactly as authored.
 
 ## Accepted file types
 
@@ -74,10 +99,13 @@ folders for every catalog product so you can see exactly where to drop files.
 
 | Input | Output |
 | --- | --- |
-| `main.*` | `public/images/products/<collection>/<product>/main.webp` |
-| `alt.*` | `public/images/products/<collection>/<product>/alt.webp` |
-| `spin.*` | `public/images/spin/<product>/` (`sprite.webp` + `manifest.json`; per-frame `frames/` are gitignored) |
+| `main.*` | `public/images/products/<collection>/<piece>/main.webp` |
+| `alt.*` | `public/images/products/<collection>/<piece>/alt.webp` |
+| `spin.*` | `public/images/spin/<piece>/` (`sprite.webp` + `manifest.json`; per-frame `frames/` are gitignored) |
 | catalog | `src/lib/product-assets.generated.json` (generated; merged by `products.ts`) |
+
+> Output paths drop the category — only `<collection>/<piece>` is used — so a
+> piece can be re-filed under a different category without moving its assets.
 
 `hoverType` is set by precedence: **spin** present → `spin360`; else **alt**
 present → `alternateAngle`; else left as authored (`staticOnly`).
@@ -107,16 +135,16 @@ npm run import-assets -- --no-matte
 ```bash
 npm run import-assets                       # process the whole drop zone
 npm run import-assets -- --dry-run          # print the plan; write nothing
-npm run import-assets -- --only darling-babies/dinner-plate
-npm run import-assets -- --scaffold         # (re)create the empty drop-zone folders + README
+npm run import-assets -- --only darling-babies/ramen-bowl-blue
+npm run import-assets -- --scaffold         # (re)create the category drop-zone folders + README
 npm run import-assets -- --force            # reprocess even if outputs look up to date
 ```
 
 | Flag | Default | Meaning |
 | --- | --- | --- |
 | `--dry-run` | off | Plan only — log every action and the catalog change without writing. |
-| `--only <collection/product>` | — | Restrict to a single product folder. |
-| `--scaffold` | off | Create empty `assets-incoming/<collection>/<product>/` for every catalog product (+ README), then import. |
+| `--only <collection/piece>` | — | Restrict to a single piece (also accepts `<collection>/<category>/<piece>`). |
+| `--scaffold` | off | Create `assets-incoming/<collection>/<category>/` for both collections × all categories (+ README), then import. |
 | `--force` | off | Ignore the mtime "unchanged" skip check and reprocess. |
 | `--no-matte` / `--keep-bg` | off | Keep the photo's original background instead of matting to transparent. |
 | `--max-edge <px>` | `1600` | Long-edge cap for optimized photos. |
@@ -126,11 +154,13 @@ npm run import-assets -- --force            # reprocess even if outputs look up 
 
 ## Idempotency
 
-Re-running is safe. Each product folder is processed **authoritatively** (its
-generated entry reflects exactly the files present now), while other products'
-entries are preserved. Unchanged inputs are skipped via an mtime check (use
-`--force` to override). The generated JSON is sorted and stable, so re-running
-with the same inputs produces no diff.
+Re-running is safe. Each piece folder is processed **authoritatively** for its
+asset fields (the generated entry reflects exactly the files present now, so
+removing e.g. `alt.*` drops `alternateImage`), while the human-edited
+`price`/`isSold` for that piece are **preserved** and other pieces' entries are
+untouched. Unchanged inputs are skipped via an mtime check (use `--force` to
+override). The generated JSON is sorted and stable, so re-running with the same
+inputs produces no diff.
 
 ## Product spins are COLOR
 

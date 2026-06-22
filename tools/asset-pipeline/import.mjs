@@ -2,37 +2,42 @@
 /**
  * Batch asset importer for Day Day Ceramics.
  *
- * Walks the local-only drop zone `assets-incoming/<collection>/<product>/`,
- * optimizes the raw photos into committed web assets, runs the spin pipeline on
- * any 360° turntable video, and records the resulting per-product asset paths
- * into `src/lib/product-assets.generated.json` (which `src/lib/products.ts`
- * layers onto the hand-authored catalog).
+ * Walks the local-only drop zone, grouped by CATEGORY:
  *
- *   assets-incoming/<collection>/<product>/
- *       main.<ext>   primary hero photo  -> public/images/products/.../main.webp  (defaultImage)
- *       alt.<ext>    optional 2nd angle  -> public/images/products/.../alt.webp   (alternateImage)
- *       spin.<ext>   optional 360 video  -> public/images/spin/<product>/         (spinMedia, COLOR)
+ *   assets-incoming/<collection>/<category>/<piece>/
+ *       main.<ext>   primary hero photo  -> public/images/products/<collection>/<piece>/main.webp  (defaultImage)
+ *       alt.<ext>    optional 2nd angle  -> public/images/products/<collection>/<piece>/alt.webp   (alternateImage)
+ *       spin.<ext>   optional 360 video  -> public/images/spin/<piece>/                            (spinMedia, COLOR)
+ *
+ * The PIECE FOLDER NAME is the product: `slug` = folder name, `title` = its
+ * humanized form, `category` = parent folder, `collection` = grandparent. Each
+ * piece is recorded as a FULL entry in `src/lib/product-assets.generated.json`,
+ * which `src/lib/products.ts` MERGES onto the hand-authored seed catalog
+ * (supplying category/asset fields to seeded pieces, and APPENDING brand-new
+ * pieces). `price`/`isSold` default to 0/false and are PRESERVED across runs
+ * (never clobbered once edited). This is non-destructive: empty folders leave
+ * the live demo catalog untouched.
  *
  * Product photos (main/alt) are background-removed to TRANSPARENT and auto-
  * cropped BY DEFAULT (same matter as the spin pipeline) so pieces float on the
  * page with no backdrop box or drop shadow. Pass --no-matte / --keep-bg to keep
  * the original background (e.g. for photos that are already cut out).
  *
- * hoverType precedence per product: spin present -> "spin360";
- *   else alt present -> "alternateAngle"; else left as authored / "staticOnly".
+ * hoverType precedence per piece: spin present -> "spin360";
+ *   else alt present -> "alternateAngle"; else "staticOnly".
  *
  * Usage:
  *   npm run import-assets                       # process everything
  *   npm run import-assets -- --dry-run          # print planned actions, write nothing
- *   npm run import-assets -- --only darling-babies/dinner-plate
- *   npm run import-assets -- --scaffold         # (re)create empty drop-zone folders + README
+ *   npm run import-assets -- --only darling-babies/ramen-bowl-blue
+ *   npm run import-assets -- --scaffold         # (re)create the category drop-zone folders + README
  *   npm run import-assets -- --force            # reprocess even if outputs look up to date
  *
  * Options:
  *   --dry-run                 Plan only; no files written, no spin pipeline run.
- *   --only <collection/product>   Restrict to one product folder.
- *   --scaffold                Create empty assets-incoming/<collection>/<product>/ for every
- *                             catalog product (+ a README), then continue importing.
+ *   --only <collection/piece>     Restrict to one piece (accepts collection/category/piece too).
+ *   --scaffold                Create assets-incoming/<collection>/<category>/ for both
+ *                             collections × all categories (+ a README), then continue importing.
  *   --force                   Ignore the mtime skip check and reprocess inputs.
  *   --no-matte / --keep-bg    Keep the photo's original background (default: matte to transparent).
  *   --max-edge <px>           Long-edge cap for optimized photos (default 1600).
@@ -138,47 +143,56 @@ function addWarning(msg) {
 }
 
 // ---------------------------------------------------------------------------
-// Catalog parsing — derive the valid (collection, product) slugs from
-// products.ts WITHOUT importing the TS module (this is plain Node/ESM). The
-// regexes key off the stable shape of the catalog: a COLLECTION slug is the one
-// immediately followed by `title:` + `tagline:`, while a PRODUCT slug is the one
-// immediately preceded by an `id:` field. Products are then assigned to the
-// nearest preceding collection by source offset.
+// Config parsing — derive the valid COLLECTION and CATEGORY slugs from
+// products.ts WITHOUT importing the TS module (this is plain Node/ESM), so the
+// importer and the app share a single source of truth.
+//   - A COLLECTION slug is the one immediately followed by `title:` + `tagline:`.
+//   - CATEGORY slugs come from the exported `CATEGORIES` registry
+//     (`{ slug: "...", label: "..." }`).
+// The drop-zone layout is `<collection>/<category>/<piece>/`; the piece folder
+// name itself becomes the product slug/title (no catalog membership required).
 // ---------------------------------------------------------------------------
-function readCatalog() {
+function readConfig() {
   const src = readFileSync(PRODUCTS_TS, "utf8");
-  const collRe =
-    /slug:\s*"([^"]+)"\s*,\s*title:\s*"[^"]*"\s*,\s*tagline:/g;
-  const prodRe = /id:\s*"[^"]+"\s*,\s*slug:\s*"([^"]+)"/g;
-  const collections = [];
-  const products = [];
+
+  const collRe = /slug:\s*"([^"]+)"\s*,\s*title:\s*"[^"]*"\s*,\s*tagline:/g;
+  const collectionSlugs = [];
   let m;
-  while ((m = collRe.exec(src))) {
-    collections.push({ slug: m[1], index: m.index });
+  while ((m = collRe.exec(src))) collectionSlugs.push(m[1]);
+
+  const catBlock = src.match(/CATEGORIES\b[^=]*=\s*\[([\s\S]*?)\]/);
+  const categorySlugs = [];
+  if (catBlock) {
+    const catRe = /slug:\s*"([^"]+)"\s*,\s*label:/g;
+    while ((m = catRe.exec(catBlock[1]))) categorySlugs.push(m[1]);
   }
-  while ((m = prodRe.exec(src))) {
-    products.push({ slug: m[1], index: m.index });
-  }
-  if (!collections.length || !products.length) {
+
+  if (!collectionSlugs.length || !categorySlugs.length) {
     throw new Error(
-      `Could not parse catalog from ${PRODUCTS_TS}. ` +
-        `The importer expects the standard products.ts shape.`
+      `Could not parse collections/categories from ${PRODUCTS_TS}. ` +
+        `The importer expects the standard products.ts shape ` +
+        `(collections with title/tagline + an exported CATEGORIES registry).`
     );
   }
-  return products.map((p) => {
-    let coll = collections[0];
-    for (const c of collections) {
-      if (c.index < p.index) coll = c;
-      else break;
-    }
-    return { collection: coll.slug, slug: p.slug };
-  });
+  return { collectionSlugs, categorySlugs };
+}
+
+/** Title-case a kebab slug, e.g. `ramen-bowl-blue` -> "Ramen Bowl Blue". */
+function humanizeSlug(slug) {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 }
 
 // ---------------------------------------------------------------------------
 // Drop-zone scaffolding
 // ---------------------------------------------------------------------------
-const README_BODY = `# assets-incoming (local-only drop zone)
+function readmeBody(collectionSlugs, categorySlugs) {
+  const catList = categorySlugs.map((s) => `\`${s}\``).join(", ");
+  const collList = collectionSlugs.map((s) => `\`${s}\``).join(", ");
+  return `# assets-incoming (local-only drop zone)
 
 Drop raw product photos and 360° turntable videos here, then run:
 
@@ -190,13 +204,25 @@ full guide.
 
 ## Structure
 
-    assets-incoming/<collection-slug>/<product-slug>/
+    assets-incoming/<collection>/<category>/<piece>/
         main.<ext>    # required hero photo  -> defaultImage
         alt.<ext>     # optional 2nd angle   -> alternateImage / alternateAngle hover
         spin.<ext>    # optional 360 video   -> spin360 hover (COLOR)
 
+- **<collection>**: ${collList}
+- **<category>**: ${catList}
+- **<piece>**: a kebab-case folder name YOU pick. **The piece folder name
+  becomes the product** — its \`slug\` is the folder name and its \`title\` is the
+  humanized version (e.g. \`ramen-bowl-blue\` -> "Ramen Bowl Blue"). Drop a new
+  piece folder under the right category and it's added to that collection's grid
+  on the next import.
+
 Match files by the \`main\` / \`alt\` / \`spin\` basename (case-insensitive). A lone
 image with any name is treated as \`main\`, but explicit names are preferred.
+
+New pieces import with placeholder \`price: 0\` / \`isSold: false\`; edit those in
+\`src/lib/product-assets.generated.json\` and they are **preserved** across
+re-imports.
 
 ## Accepted file types
 
@@ -213,19 +239,23 @@ contrasting background (clean matting), ~6–15s, ≥720p, object centered.
 
 Product spins render in **full color**. The halftone "print" look is home-only.
 `;
+}
 
-function scaffold(catalog) {
+function scaffold(collectionSlugs, categorySlugs) {
   log(`scaffolding drop zone -> ${rel(INCOMING_DIR)}`);
-  for (const { collection, slug } of catalog) {
-    const dir = join(INCOMING_DIR, collection, slug);
-    if (DRY_RUN) {
-      if (!existsSync(dir)) log(`  would create ${rel(dir)}/`);
-      continue;
+  for (const collection of collectionSlugs) {
+    for (const category of categorySlugs) {
+      const dir = join(INCOMING_DIR, collection, category);
+      if (DRY_RUN) {
+        if (!existsSync(dir)) log(`  would create ${rel(dir)}/`);
+        continue;
+      }
+      mkdirSync(dir, { recursive: true });
     }
-    mkdirSync(dir, { recursive: true });
   }
+  const body = readmeBody(collectionSlugs, categorySlugs);
   if (!DRY_RUN) {
-    writeFileSync(README_DST, README_BODY);
+    writeFileSync(README_DST, body);
     log(`  wrote ${rel(README_DST)}`);
   } else {
     log(`  would write ${rel(README_DST)}`);
@@ -410,10 +440,11 @@ function writeOverrides(map) {
 // Main
 // ---------------------------------------------------------------------------
 async function main() {
-  const catalog = readCatalog();
-  const known = new Map(catalog.map((c) => [`${c.collection}/${c.slug}`, c]));
+  const { collectionSlugs, categorySlugs } = readConfig();
+  const validCollections = new Set(collectionSlugs);
+  const validCategories = new Set(categorySlugs);
 
-  if (SCAFFOLD) scaffold(catalog);
+  if (SCAFFOLD) scaffold(collectionSlugs, categorySlugs);
 
   if (!existsSync(INCOMING_DIR)) {
     log(`no drop zone at ${rel(INCOMING_DIR)} — nothing to import.`);
@@ -422,80 +453,109 @@ async function main() {
     return;
   }
 
-  const overrides = loadOverrides();
+  // Generated layer is keyed by "<collection>/<piece>" and PRESERVES any
+  // human-edited price/isSold across runs.
+  const generated = loadOverrides();
   let processedAny = false;
 
   for (const collection of listDirs(INCOMING_DIR)) {
-    for (const product of listDirs(join(INCOMING_DIR, collection))) {
-      const key = `${collection}/${product}`;
-      if (ONLY && key !== ONLY) continue;
-      const dir = join(INCOMING_DIR, collection, product);
-      const files = listFiles(dir);
-      if (!files.length) continue;
-      processedAny = true;
-
-      log(`\n${key}`);
-
-      let mainFile = findRole(files, "main", PHOTO_EXTS);
-      const altFile = findRole(files, "alt", PHOTO_EXTS);
-      const spinFile = findRole(files, "spin", VIDEO_EXTS);
-
-      // Fallback: a lone, non-role-named image is treated as the hero.
-      if (!mainFile) {
-        const lone = files.filter(
-          (f) => PHOTO_EXTS.includes(extOf(f)) && f !== altFile
-        );
-        if (lone.length === 1) {
-          mainFile = lone[0];
-          log(`  (using lone image "${mainFile}" as main)`);
-        }
-      }
-
-      const known_ = known.has(key);
-      if (!known_) {
+    if (!validCollections.has(collection)) {
+      addWarning(
+        `skipping unknown collection "${collection}/" ` +
+          `(expected one of: ${collectionSlugs.join(", ")}).`
+      );
+      continue;
+    }
+    for (const category of listDirs(join(INCOMING_DIR, collection))) {
+      if (!validCategories.has(category)) {
         addWarning(
-          `"${key}" is not a product in products.ts — optimizing images but ` +
-            "NOT updating the catalog. Check the collection/product slug."
+          `skipping unknown category "${collection}/${category}/" ` +
+            `(expected one of: ${categorySlugs.join(", ")}).`
         );
+        continue;
       }
-
-      const entry = {};
-
-      if (mainFile) {
-        const out = join(PRODUCTS_OUT_ROOT, collection, product, "main.webp");
-        if (await optimizeImage(join(dir, mainFile), out, "main")) {
-          entry.defaultImage = `/images/products/${collection}/${product}/main.webp`;
+      for (const piece of listDirs(join(INCOMING_DIR, collection, category))) {
+        const slug = piece;
+        const key = `${collection}/${slug}`;
+        if (ONLY && key !== ONLY && ONLY !== `${collection}/${category}/${slug}`) {
+          continue;
         }
-      } else {
-        addWarning(`"${key}" has no main.* photo; defaultImage left unchanged.`);
-      }
+        const dir = join(INCOMING_DIR, collection, category, piece);
+        const files = listFiles(dir);
+        if (!files.length) continue;
+        processedAny = true;
 
-      if (altFile) {
-        const out = join(PRODUCTS_OUT_ROOT, collection, product, "alt.webp");
-        if (await optimizeImage(join(dir, altFile), out, "alt")) {
-          entry.alternateImage = `/images/products/${collection}/${product}/alt.webp`;
+        log(`\n${collection}/${category}/${slug}`);
+
+        let mainFile = findRole(files, "main", PHOTO_EXTS);
+        const altFile = findRole(files, "alt", PHOTO_EXTS);
+        const spinFile = findRole(files, "spin", VIDEO_EXTS);
+
+        // Fallback: a lone, non-role-named image is treated as the hero.
+        if (!mainFile) {
+          const lone = files.filter(
+            (f) => PHOTO_EXTS.includes(extOf(f)) && f !== altFile
+          );
+          if (lone.length === 1) {
+            mainFile = lone[0];
+            log(`  (using lone image "${mainFile}" as main)`);
+          }
         }
-      }
 
-      if (spinFile) {
-        if (buildSpin(join(dir, spinFile), product)) {
-          entry.spinMedia = `/images/spin/${product}`;
-        }
-      }
+        // Start from any existing entry so price/isSold (and prior asset paths)
+        // are preserved, then refresh derived fields from the folder.
+        const prev = generated[key] ?? {};
+        const entry = {
+          category,
+          title: humanizeSlug(slug),
+          defaultImage: prev.defaultImage ?? null,
+          alternateImage: null,
+          spinMedia: null,
+          hoverType: "staticOnly",
+          price: typeof prev.price === "number" ? prev.price : 0,
+          isSold: typeof prev.isSold === "boolean" ? prev.isSold : false,
+        };
 
-      // hoverType precedence: spin > alt > leave staticOnly.
-      if (entry.spinMedia) entry.hoverType = "spin360";
-      else if (entry.alternateImage) entry.hoverType = "alternateAngle";
-      else entry.hoverType = "staticOnly";
-
-      if (known_ && Object.keys(entry).some((k) => k !== "hoverType")) {
-        // Per-product authoritative replace: reflect exactly the files present
-        // now (so removing e.g. alt.* on a re-run drops alternateImage), while
-        // other products' entries are preserved (merge).
-        if (DRY_RUN) {
-          log(`  would update products.ts via override: ${JSON.stringify(entry)}`);
+        if (mainFile) {
+          const out = join(PRODUCTS_OUT_ROOT, collection, slug, "main.webp");
+          if (await optimizeImage(join(dir, mainFile), out, "main")) {
+            entry.defaultImage = `/images/products/${collection}/${slug}/main.webp`;
+          }
         } else {
-          overrides[key] = entry;
+          addWarning(
+            `"${collection}/${category}/${slug}" has no main.* photo; ` +
+              "skipping (a hero photo is required to add the piece)."
+          );
+          continue;
+        }
+
+        if (altFile) {
+          const out = join(PRODUCTS_OUT_ROOT, collection, slug, "alt.webp");
+          if (await optimizeImage(join(dir, altFile), out, "alt")) {
+            entry.alternateImage = `/images/products/${collection}/${slug}/alt.webp`;
+          }
+        }
+
+        if (spinFile) {
+          if (buildSpin(join(dir, spinFile), slug)) {
+            entry.spinMedia = `/images/spin/${slug}`;
+          }
+        }
+
+        // hoverType precedence: spin > alt > staticOnly.
+        if (entry.spinMedia) entry.hoverType = "spin360";
+        else if (entry.alternateImage) entry.hoverType = "alternateAngle";
+        else entry.hoverType = "staticOnly";
+
+        if (DRY_RUN) {
+          const isNew = !(key in generated);
+          log(
+            `  would ${isNew ? "ADD" : "update"} ${key} -> ${JSON.stringify(
+              entry
+            )}`
+          );
+        } else {
+          generated[key] = entry;
         }
         summary.productsUpdated++;
       }
@@ -503,10 +563,10 @@ async function main() {
   }
 
   if (ONLY && !processedAny) {
-    addWarning(`--only ${ONLY} matched no non-empty folder under assets-incoming/.`);
+    addWarning(`--only ${ONLY} matched no non-empty piece folder under assets-incoming/.`);
   }
 
-  if (!DRY_RUN) writeOverrides(overrides);
+  if (!DRY_RUN) writeOverrides(generated);
 
   printSummary();
 }
