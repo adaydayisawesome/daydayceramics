@@ -38,11 +38,11 @@ export default async function ProductPage({
   // are null today; wire add-to-cart / checkout here once the catalog is live.
 
   return (
-    <main className="flex min-h-[100svh] flex-col bg-white text-neutral-900">
-      <header className="px-[clamp(16px,4vw,56px)] py-5">
+    <main className="flex min-h-[100svh] flex-col bg-white font-[family-name:var(--font-figtree)] text-neutral-900">
+      <header className="px-[clamp(16px,4vw,56px)] py-4">
         <Link
           href={`/collections/${col.slug}`}
-          className="inline-flex items-center gap-1.5 text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase transition-colors hover:text-neutral-900"
+          className="inline-flex items-center gap-1.5 text-sm font-medium tracking-[0.01em] text-neutral-500 transition-colors hover:text-neutral-900"
         >
           <ArrowLeft className="size-3.5" /> {col.title}
         </Link>
@@ -59,10 +59,10 @@ export default async function ProductPage({
         </div>
 
         <div className="flex flex-col items-start text-left md:flex-1">
-          <p className="text-xs tracking-[0.32em] text-neutral-500 uppercase">
+          <p className="text-sm tracking-[0.02em] text-neutral-500">
             {col.title}
           </p>
-          <h1 className="mt-3 text-[clamp(2rem,5vw,3.25rem)] leading-tight font-medium">
+          <h1 className="mt-3 text-[clamp(2rem,5vw,3.25rem)] leading-tight font-semibold">
             {item.title}
           </h1>
           <p className="mt-4 text-lg text-neutral-600">

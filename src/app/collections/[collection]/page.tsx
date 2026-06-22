@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft, Smile } from "lucide-react";
 import { collections, getCollection } from "@/lib/products";
 import { ProductGrid } from "@/components/collections/product-grid";
 
@@ -30,31 +30,36 @@ export default async function CollectionGridPage({
   const other = collections.find((c) => c.slug !== data.slug);
 
   return (
-    <main className="flex min-h-[100svh] flex-col bg-white text-neutral-900">
-      {/* Quiet header — intentionally chrome-light so the grid reads as one plane. */}
-      <header className="flex items-center justify-between gap-4 px-[clamp(16px,4vw,56px)] py-5">
+    <main className="flex h-[100svh] flex-col overflow-hidden bg-white font-[family-name:var(--font-figtree)] text-neutral-900">
+      {/* Quiet header — circular icon buttons mirror the home "About" close
+          button (40x40, 24px from the edge). Title is optically centered. */}
+      <header className="relative flex items-center justify-between p-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase transition-colors hover:text-neutral-900"
+          aria-label="Back to home"
+          className="group flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-transparent transition-colors hover:bg-[#413E3F]"
         >
-          <ArrowLeft className="size-3.5" /> Home
+          <ChevronLeft className="size-5 text-[#413E3F] transition-colors group-hover:text-[#F8F5EE]" />
         </Link>
-        <span className="text-xs font-medium tracking-[0.28em] text-neutral-900 uppercase">
+
+        <span className="absolute left-1/2 -translate-x-1/2 font-[family-name:var(--font-playfair)] text-[clamp(18px,2.4vw,24px)] leading-none font-extrabold tracking-[-0.01em] text-neutral-900 italic">
           {data.title}
         </span>
+
         {other ? (
           <Link
             href={`/collections/${other.slug}`}
-            className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase transition-colors hover:text-neutral-900"
+            aria-label={`Go to ${other.title}`}
+            className="group flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-transparent transition-colors hover:bg-[#413E3F]"
           >
-            {other.title}
+            <Smile className="size-5 text-[#413E3F] transition-colors group-hover:text-[#F8F5EE]" />
           </Link>
         ) : (
-          <span className="w-12" />
+          <span className="h-10 w-10" />
         )}
       </header>
 
-      <div className="flex flex-1 items-center justify-center py-4">
+      <div className="min-h-0 flex-1">
         <ProductGrid collection={data} />
       </div>
     </main>

@@ -26,6 +26,8 @@ type Manifest = {
   cols: number;
   rows: number;
   sprite: string;
+  /** Optional baked grainy B&W halftone "print" sprite (home page). */
+  spritePrint?: string;
   settleFrame?: number;
 };
 
@@ -52,10 +54,15 @@ function loadManifest(name: string): Promise<Manifest | null> {
     })
     .then((m) => {
       manifestCache.set(name, m);
-      // Warm the sprite in the browser cache so the first frame is instant.
+      // Warm the sprite(s) in the browser cache so the first frame is instant.
+      // Warm the baked print variant too when present (the home page uses it).
       if (typeof window !== "undefined") {
         const img = new window.Image();
         img.src = `${spinDir(name)}/${m.sprite}`;
+        if (m.spritePrint) {
+          const imgPrint = new window.Image();
+          imgPrint.src = `${spinDir(name)}/${m.spritePrint}`;
+        }
       }
       return m;
     })
@@ -88,9 +95,16 @@ type SpinningObjectProps = {
   durationMs?: number;
   /** Frame to settle on; overrides manifest.settleFrame. */
   settleFrame?: number;
-  /** Render the object in black & white (the source frames stay full color, so
-   *  product pages can reuse the same asset in color). */
+  /** Render the object in black & white via a CSS `grayscale(1)` filter over the
+   *  color frames. Used as the FALLBACK B&W path (static image, manifest not yet
+   *  loaded, or assets without a baked print variant). */
   grayscale?: boolean;
+  /** Prefer the baked grainy halftone "print" variant (sprite-print.webp) when
+   *  the manifest exposes `spritePrint`. The B&W is baked into the sprite, so no
+   *  CSS grayscale filter is applied in that case. Falls back to the `grayscale`
+   *  behavior whenever the print sprite is unavailable, so the home page never
+   *  shows color and never breaks. */
+  print?: boolean;
 };
 
 export function SpinningObject({
@@ -104,8 +118,11 @@ export function SpinningObject({
   durationMs = SLIDE_MS,
   settleFrame,
   grayscale = false,
+  print = false,
 }: SpinningObjectProps) {
-  const filter = grayscale ? "grayscale(1)" : undefined;
+  // CSS B&W filter — used for the static fallback image and as the safe B&W
+  // path whenever the baked print sprite isn't available.
+  const grayscaleFilter = grayscale || print ? "grayscale(1)" : undefined;
   const [manifest, setManifest] = useState<Manifest | null>(() =>
     name ? (manifestCache.get(name) ?? null) : null
   );
@@ -179,13 +196,20 @@ export function SpinningObject({
         src={fallbackSrc}
         alt={alt}
         className={className}
-        style={{ filter }}
+        style={{ filter: grayscaleFilter }}
         draggable={false}
       />
     );
   }
 
-  const { cols, rows, frameWidth, frameHeight, sprite } = manifest;
+  const { cols, rows, frameWidth, frameHeight, sprite, spritePrint } = manifest;
+  // Prefer the baked halftone print sprite when requested and available. The
+  // B&W is baked into those pixels, so drop the CSS grayscale filter. Otherwise
+  // fall back to the color sprite + (optional) CSS grayscale, so the home page
+  // never shows color even if the print sprite is missing.
+  const usePrint = print && Boolean(spritePrint);
+  const activeSprite = usePrint ? spritePrint! : sprite;
+  const spriteFilter = usePrint ? undefined : grayscaleFilter;
   const col = displayFrame % cols;
   const row = Math.floor(displayFrame / cols);
   const posX = cols > 1 ? (col / (cols - 1)) * 100 : 0;
@@ -201,11 +225,11 @@ export function SpinningObject({
         height: "100%",
         width: "auto",
         aspectRatio: `${frameWidth} / ${frameHeight}`,
-        backgroundImage: `url(${spinDir(name)}/${sprite})`,
+        backgroundImage: `url(${spinDir(name)}/${activeSprite})`,
         backgroundRepeat: "no-repeat",
         backgroundSize: `${cols * 100}% ${rows * 100}%`,
         backgroundPosition: `${posX}% ${posY}%`,
-        filter,
+        filter: spriteFilter,
       }}
     />
   );

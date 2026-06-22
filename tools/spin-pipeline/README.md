@@ -17,8 +17,9 @@ This produces:
 ```
 public/images/spin/cup-a/
   frames/frame_000.webp ... frame_NNN.webp   # transparent sequence
-  sprite.webp                                # all frames packed in a grid
-  manifest.json                              # frameCount, size, cols/rows, settleFrame, ...
+  sprite.webp                                # all frames packed in a grid (COLOR)
+  sprite-print.webp                          # baked grainy B&W halftone "print"
+  manifest.json                              # frameCount, size, cols/rows, settleFrame, spritePrint, ...
 ```
 
 ## What it does
@@ -36,6 +37,50 @@ public/images/spin/cup-a/
    `--max` height, then writes the WebP sequence + sprite sheet + manifest.
 
 Cropping/resizing/sprite-packing all use `sharp` (already a project dependency).
+
+4. **Bake the "print" variant** (`treat.mjs`). After the color sprite is written,
+   the pipeline applies a grainy black-and-white **halftone** treatment to the
+   same cropped frames and writes `sprite-print.webp` (identical cols/rows/frame
+   geometry), then records `spritePrint` in the manifest. The COLOR `sprite.webp`
+   is left untouched — product/collection pages keep using it in full color,
+   while the HOME spinner (letters **D**/**A**) renders the baked B&W print.
+
+## The B&W halftone "print" treatment (`treat.mjs`)
+
+The home-page spinner shows the cup as a photocopied-zine print: a vintage tonal
+curve, classic **AM halftone dots** on a ~45° screen, and **film grain**. The
+ORIGINAL matte alpha is preserved exactly, so the object still floats over the
+dark page (no opaque paper rectangle). The B&W is **baked into the pixels**, so
+the component applies no CSS `grayscale` filter for this variant.
+
+Run it standalone over an existing asset's frames (fast — no video needed):
+
+```bash
+node tools/spin-pipeline/treat.mjs --name cup-a
+# write a sample PNG to eyeball the dots/grain/tone:
+node tools/spin-pipeline/treat.mjs --name cup-a --sample /tmp/print-sample.png
+```
+
+It is also imported by `build.mjs`, so a full pipeline run emits both `sprite.webp`
+and `sprite-print.webp` in one go.
+
+### Treatment knobs
+
+Defaults live in `PRINT_DEFAULTS` (in `treat.mjs`) and lean "vintage, slightly
+rough." Override per run with flags:
+
+| Flag | Default | Meaning |
+| --- | --- | --- |
+| `--dot <px>` | `6` | Halftone dot cell size in **source** px (frames ~617×480, scaled down on screen). Smaller = finer dots. |
+| `--angle <deg>` | `45` | Screen rotation. |
+| `--aa <frac>` | `0.16` | Dot-edge softness (ink-bleed feel vs. crisp vector dots). |
+| `--grain <amt>` | `0.16` | Screen grain/roughness (breaks up the dot grid → photocopied). |
+| `--final-grain <amt>` | `0.05` | Faint final luminance grain. |
+| `--contrast <x>` | `1.28` | Contrast punch around mid-grey. |
+| `--gamma <x>` | `1.18` | Midtone lift (keeps detail; avoids a black silhouette). |
+| `--in-black <0..1>` | `0.1` | Levels black point (crush blacks). |
+| `--in-white <0..1>` | `0.92` | Levels white point (blow highlights). |
+| `--sample <path>` | — | Also write a single treated PNG for inspection. |
 
 ## Options
 

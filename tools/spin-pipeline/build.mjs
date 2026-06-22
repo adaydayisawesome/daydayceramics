@@ -12,8 +12,13 @@
  *
  * Output: public/images/spin/<name>/
  *   - frames/frame_000.webp ... frame_NNN.webp
- *   - sprite.webp
- *   - manifest.json
+ *   - sprite.webp        (full COLOR sprite — product/collection pages use it)
+ *   - sprite-print.webp  (baked grainy B&W halftone "print" — HOME spinner)
+ *   - manifest.json      (includes `spritePrint` when the print variant exists)
+ *
+ * The print treatment lives in ./treat.mjs and can also be run standalone over
+ * an EXISTING asset's frames (no video/ffmpeg/matting needed):
+ *   node tools/spin-pipeline/treat.mjs --name cup-a
  *
  * Usage:
  *   node tools/spin-pipeline/build.mjs --input ~/Downloads/cup.mov --name cup-a --frames 36
@@ -36,6 +41,8 @@ import os from "node:os";
 import sharp from "sharp";
 import ffmpegPath from "ffmpeg-static";
 import ffprobe from "ffprobe-static";
+
+import { buildPrintSprite } from "./treat.mjs";
 
 // Sharp logs harmless SIMD capability warnings on some CPUs; silence them.
 sharp.simd(false);
@@ -387,6 +394,18 @@ async function build() {
     join(OUT_DIR, "manifest.json"),
     JSON.stringify(manifest, null, 2)
   );
+
+  // Bake the grainy B&W halftone "print" variant used by the HOME spinner.
+  // The COLOR sprite above stays untouched (product/collection pages reuse it);
+  // this adds sprite-print.webp + manifest.spritePrint. The treated frames
+  // reuse the freshly-cropped color frame buffers (identical geometry), so this
+  // needs no extra ffmpeg/matting work.
+  log("baking print (halftone) sprite...");
+  await buildPrintSprite({
+    outDir: OUT_DIR,
+    manifest,
+    frames: frameBuffers,
+  });
 
   if (!KEEP_TMP) rmSync(TMP_DIR, { recursive: true, force: true });
 

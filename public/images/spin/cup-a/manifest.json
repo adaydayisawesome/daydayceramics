@@ -10,5 +10,6 @@
   "sprite": "sprite.webp",
   "sequence": "frames/frame_%03d.webp",
   "turns": 1,
-  "settleFrame": 0
+  "settleFrame": 0,
+  "spritePrint": "sprite-print.webp"
 }

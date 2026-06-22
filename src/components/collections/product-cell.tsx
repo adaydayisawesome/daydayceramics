@@ -52,10 +52,10 @@ export function ProductCell({
         onFocus={() => setHovered(true)}
         onBlur={() => setHovered(false)}
       >
-        {/* Quiet pill — top-right, above the image. */}
+        {/* Quiet price — centered along the cell's bottom edge. */}
         <span
-          className={`pointer-events-none absolute top-2 right-2 z-10 rounded-full px-2 py-[3px] text-[11px] leading-none font-medium tracking-wide tabular-nums ${
-            product.isSold ? "text-neutral-400" : "text-neutral-500"
+          className={`pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 text-[12px] leading-none font-medium tracking-wide tabular-nums ${
+            product.isSold ? "text-neutral-400" : "text-neutral-600"
           }`}
         >
           {product.isSold ? "sold" : priceLabel(product.price)}

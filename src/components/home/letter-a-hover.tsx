@@ -135,6 +135,7 @@ export function LetterAHover({
                     name={SPIN_ASSET}
                     fallbackSrc={SPIN_FALLBACK}
                     active={active}
+                    print
                     grayscale
                     rotations={A_SPIN.rotations}
                     settleFrame={A_SPIN.settleFrame}
