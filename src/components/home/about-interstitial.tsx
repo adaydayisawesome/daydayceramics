@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Mail, X } from "lucide-react";
 
@@ -50,6 +51,29 @@ export function AboutInterstitial({ open, onClose }: AboutInterstitialProps) {
       className="fixed inset-0 z-[100] overflow-y-auto"
       style={{ backgroundColor: CREAM, color: INK }}
     >
+      {/* Decorative "Creation of Adam" hands, broken apart and anchored to
+          opposite corners to frame the text. Behind the content (z-0) and
+          non-interactive so they never block the close button or links.
+          Hidden below md so the single-column mobile text stays uncluttered. */}
+      <Image
+        src="/images/about/hand-top-right.webp"
+        alt=""
+        aria-hidden
+        width={862}
+        height={652}
+        className="pointer-events-none absolute top-0 right-0 z-0 hidden h-auto w-[clamp(200px,26vw,420px)] select-none md:block"
+        priority
+      />
+      <Image
+        src="/images/about/hand-bottom-left.webp"
+        alt=""
+        aria-hidden
+        width={898}
+        height={587}
+        className="pointer-events-none absolute bottom-0 left-0 z-0 hidden h-auto w-[clamp(200px,26vw,420px)] select-none md:block"
+        priority
+      />
+
       <Button
         type="button"
         variant="ghost"
@@ -64,7 +88,7 @@ export function AboutInterstitial({ open, onClose }: AboutInterstitialProps) {
       {/* Vertically centered block; generous top padding clears the close button.
           Horizontal rhythm mimics the home page DAY letters: a centered max-width
           track with a 98px column gutter (matches day-letters' md:gap-[98px]). */}
-      <div className="flex min-h-full items-center justify-center px-6 py-24 md:px-[140px]">
+      <div className="relative z-10 flex min-h-full items-center justify-center px-6 py-24 md:px-[140px]">
         <div className="grid w-full max-w-[1200px] grid-cols-1 gap-12 md:grid-cols-3 md:gap-[98px]">
           {/* Column 1 — body only, no headline, starts at the top. */}
           <div>
