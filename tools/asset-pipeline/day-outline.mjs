@@ -48,7 +48,7 @@ const KEY_LIGHT = 205; // luma >= this is fully transparent (cream)
 // Thin the outline: erode the soft alpha key by this radius (px). The min-filter
 // shifts each stroke edge inward ~r px (so ~2r thinner overall) while preserving
 // the wobble + anti-aliasing. Tune by eye — 1 reads clearly thinner, not dotted.
-const OUTLINE_ERODE_RADIUS = 1;
+const OUTLINE_ERODE_RADIUS = 3;
 
 // Fill pipeline tuning.
 const INK_LUMA = 140; // luma < this counts as a drawn stroke
