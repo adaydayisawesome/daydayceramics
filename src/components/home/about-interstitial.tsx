@@ -54,14 +54,14 @@ export function AboutInterstitial({ open, onClose }: AboutInterstitialProps) {
       {/* Decorative "Creation of Adam" hands, broken apart and anchored to
           opposite corners to frame the text. Behind the content (z-0) and
           non-interactive so they never block the close button or links.
-          Hidden below md so the single-column mobile text stays uncluttered. */}
+          Smaller on mobile so the single-column text stays readable. */}
       <Image
         src="/images/about/hand-top-right.webp"
         alt=""
         aria-hidden
         width={862}
         height={652}
-        className="pointer-events-none absolute top-0 right-0 z-0 hidden h-auto w-[clamp(200px,26vw,420px)] select-none md:block"
+        className="pointer-events-none absolute top-0 right-0 z-0 h-auto w-[34vw] max-w-[420px] min-w-[120px] select-none md:w-[clamp(200px,26vw,420px)]"
         priority
       />
       <Image
@@ -70,7 +70,7 @@ export function AboutInterstitial({ open, onClose }: AboutInterstitialProps) {
         aria-hidden
         width={898}
         height={587}
-        className="pointer-events-none absolute bottom-0 left-0 z-0 hidden h-auto w-[clamp(200px,26vw,420px)] select-none md:block"
+        className="pointer-events-none absolute bottom-0 left-0 z-0 h-auto w-[34vw] max-w-[420px] min-w-[120px] select-none md:w-[clamp(200px,26vw,420px)]"
         priority
       />
 
