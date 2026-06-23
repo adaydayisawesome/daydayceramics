@@ -104,10 +104,57 @@ export function DayScrollExperience() {
   const autoAboutFired = useRef(false);
   const idleTimerRef = useRef<number | undefined>(undefined);
 
+  // Cursor parallax for the two hands (applied via refs in a rAF loop so it
+  // never triggers React re-renders / disturbs the scroll animation).
+  const topHandRef = useRef<HTMLDivElement>(null);
+  const botHandRef = useRef<HTMLDivElement>(null);
+  const pointerTarget = useRef({ x: 0, y: 0 });
+  const pointerCur = useRef({ x: 0, y: 0 });
+
   // Keep the page background CREAM (V1's hover effect may have left it INK).
   useEffect(() => {
     document.documentElement.style.backgroundColor = CREAM;
     document.body.style.backgroundColor = CREAM;
+  }, []);
+
+  // Cursor parallax: the two hands gently drift toward the cursor (the lower
+  // hand a touch more, for depth), easing back to rest when it leaves. Honors
+  // reduced-motion. Pure DOM writes — no re-render.
+  useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+    const onMove = (e: PointerEvent) => {
+      pointerTarget.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
+      pointerTarget.current.y = (e.clientY / window.innerHeight - 0.5) * 2;
+    };
+    const onLeave = () => {
+      pointerTarget.current.x = 0;
+      pointerTarget.current.y = 0;
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerout", onLeave);
+
+    const TOP = 18; // px max drift, upper-right hand
+    const BOT = 28; // px max drift, lower-left hand (more = nearer)
+    let raf = requestAnimationFrame(function loop() {
+      const c = pointerCur.current;
+      const t = pointerTarget.current;
+      c.x += (t.x - c.x) * 0.08;
+      c.y += (t.y - c.y) * 0.08;
+      if (topHandRef.current) {
+        topHandRef.current.style.transform = `translate3d(${c.x * TOP}px, ${c.y * TOP}px, 0)`;
+      }
+      if (botHandRef.current) {
+        botHandRef.current.style.transform = `translate3d(${c.x * BOT}px, ${c.y * BOT}px, 0)`;
+      }
+      raf = requestAnimationFrame(loop);
+    });
+
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerout", onLeave);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 
   const smoothScrollTo = useCallback((top: number) => {
@@ -356,22 +403,27 @@ export function DayScrollExperience() {
                 touch point is this hand's extreme edge, none of the hand crosses
                 past center — no palm overlap. Separation then drives it out to
                 the top-right corner. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/about/hand-top-right.webp"
-              alt=""
-              draggable={false}
-              className="pointer-events-none absolute h-auto w-[clamp(180px,40vmin,460px)] select-none"
-              style={{
-                left: "50%",
-                top: "50%",
-                transform: `translate(calc(28% + ${sep * 18}vw), calc(-64% - ${sep * 12}vh))`,
-                maskImage:
-                  "linear-gradient(to right, #000 58%, transparent 92%)",
-                WebkitMaskImage:
-                  "linear-gradient(to right, #000 58%, transparent 92%)",
-              }}
-            />
+            <div
+              ref={topHandRef}
+              className="pointer-events-none absolute inset-0 will-change-transform"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/about/hand-top-right.webp"
+                alt=""
+                draggable={false}
+                className="pointer-events-none absolute h-auto w-[clamp(180px,40vmin,460px)] select-none"
+                style={{
+                  left: "50%",
+                  top: "50%",
+                  transform: `translate(calc(28% + ${sep * 18}vw), calc(-64% - ${sep * 12}vh))`,
+                  maskImage:
+                    "linear-gradient(to right, #000 58%, transparent 92%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to right, #000 58%, transparent 92%)",
+                }}
+              />
+            </div>
 
             {/* Lower / left hand ("Adam"): arm enters from the lower-left; its
                 reaching fingertip is the asset's RIGHTMOST opaque pixel at
@@ -380,22 +432,27 @@ export function DayScrollExperience() {
                 hair's gap from the other hand's tip. Being this hand's extreme
                 edge, nothing crosses past center — no palm overlap. Separation
                 then drives it out to the bottom-left corner. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/about/hand-bottom-left.webp"
-              alt=""
-              draggable={false}
-              className="pointer-events-none absolute h-auto w-[clamp(180px,40vmin,460px)] select-none"
-              style={{
-                left: "50%",
-                top: "50%",
-                transform: `translate(calc(-123% - ${sep * 18}vw), calc(-41% + ${sep * 12}vh))`,
-                maskImage:
-                  "linear-gradient(to left, #000 58%, transparent 92%)",
-                WebkitMaskImage:
-                  "linear-gradient(to left, #000 58%, transparent 92%)",
-              }}
-            />
+            <div
+              ref={botHandRef}
+              className="pointer-events-none absolute inset-0 will-change-transform"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/about/hand-bottom-left.webp"
+                alt=""
+                draggable={false}
+                className="pointer-events-none absolute h-auto w-[clamp(180px,40vmin,460px)] select-none"
+                style={{
+                  left: "50%",
+                  top: "50%",
+                  transform: `translate(calc(-123% - ${sep * 18}vw), calc(-41% + ${sep * 12}vh))`,
+                  maskImage:
+                    "linear-gradient(to left, #000 58%, transparent 92%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to left, #000 58%, transparent 92%)",
+                }}
+              />
+            </div>
 
             {/* Sparkles emerge from the kiln (center) and ease out to scattered
                 resting spots beside the hands as you scroll, then settle. */}
