@@ -97,7 +97,7 @@ export function AboutContent({ showHands = true }: { showHands?: boolean }) {
           <div className="mt-8 flex items-center gap-4">
             <Link
               href="/"
-              className="inline-flex h-6 cursor-pointer items-center rounded-full border border-[#413E3F] bg-transparent px-3 text-[11px] font-semibold tracking-wide text-[#413E3F] transition-colors hover:bg-[#03F94D]"
+              className="inline-flex h-6 cursor-pointer items-center rounded-full border border-[#413E3F] bg-transparent px-3 font-[family-name:var(--font-figtree)] text-[11px] font-semibold tracking-wide text-[#413E3F] transition-colors hover:bg-[#03F94D]"
             >
               VIEW GALLERY
             </Link>
