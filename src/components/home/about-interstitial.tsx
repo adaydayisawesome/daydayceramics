@@ -64,13 +64,16 @@ export function AboutInterstitial({ open, onClose }: AboutInterstitialProps) {
         className="pointer-events-none absolute top-0 right-0 z-0 h-auto w-[34vw] max-w-[420px] min-w-[120px] select-none md:w-[clamp(200px,26vw,420px)]"
         priority
       />
+      {/* Desktop: bottom-left hand anchored to the corner. On mobile the dialog
+          is a tall scrolling column, so the bottom hand is rendered in-flow at
+          the very end (below "Ugly Babies") instead — see the grid below. */}
       <Image
         src="/images/about/hand-bottom-left.webp"
         alt=""
         aria-hidden
         width={898}
         height={587}
-        className="pointer-events-none absolute bottom-0 left-0 z-0 h-auto w-[34vw] max-w-[420px] min-w-[120px] select-none md:w-[clamp(200px,26vw,420px)]"
+        className="pointer-events-none absolute bottom-0 left-0 z-0 hidden h-auto w-[clamp(200px,26vw,420px)] select-none md:block"
         priority
       />
 
@@ -199,6 +202,20 @@ export function AboutInterstitial({ open, onClose }: AboutInterstitialProps) {
               View all
               <ArrowRight className="size-[18px] transition-transform group-hover:translate-x-1" />
             </Link>
+          </div>
+
+          {/* Mobile-only bottom-left hand: rendered in the content flow so it
+              lands at the very bottom, right below the Ugly Babies section.
+              Bleeds to the left/bottom edges to mirror the desktop corner. */}
+          <div className="md:hidden">
+            <Image
+              src="/images/about/hand-bottom-left.webp"
+              alt=""
+              aria-hidden
+              width={898}
+              height={587}
+              className="pointer-events-none -mb-24 -ml-6 mt-8 h-auto w-[60vw] max-w-[360px] min-w-[160px] select-none"
+            />
           </div>
         </div>
       </div>
