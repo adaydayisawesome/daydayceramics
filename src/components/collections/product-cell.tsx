@@ -15,10 +15,16 @@ import { SpinViewer } from "./spin-viewer";
  * Hover behavior is dispatched by `product.hoverType`:
  *  - staticOnly:     no change
  *  - alternateAngle: CSS opacity crossfade default -> alternate
- *  - spin360:        SpinViewer plays a turntable on hover, else stays static
+ *  - spin360:        SpinViewer plays a turntable on hover (desktop) or
+ *                    auto-plays continuously by default (mobile / no-hover)
  *
- * Touch / no-hover devices never trigger hover media (we gate on `(hover: hover)
- * and (pointer: fine)`), so they always see the clean static image.
+ * Hover-capable desktops (gated on `(hover: hover) and (pointer: fine)`) only
+ * spin/crossfade on hover. On touch / no-hover devices there is no hover, so
+ * `spin360` pieces auto-spin by default instead — every cell turns on its own.
+ * Detection is robust: a coarse-pointer / no-hover media query OR a narrow
+ * (<=767px) viewport counts as mobile. SSR-safe: both flags start `false`
+ * (clean static image) and flip only after mount, so server output never
+ * mismatches the client.
  */
 export function ProductCell({
   product,
@@ -29,16 +35,30 @@ export function ProductCell({
 }) {
   const [hovered, setHovered] = useState(false);
   const [canHover, setCanHover] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const update = () => setCanHover(mq.matches);
+    const hoverMq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    // Mobile = no hover OR coarse pointer OR a narrow viewport. Any one is
+    // enough to treat the device as touch-first and auto-spin by default.
+    const mobileMq = window.matchMedia(
+      "(hover: none), (pointer: coarse), (max-width: 767px)"
+    );
+    const update = () => {
+      setCanHover(hoverMq.matches);
+      setIsMobile(mobileMq.matches);
+    };
     update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
+    hoverMq.addEventListener("change", update);
+    mobileMq.addEventListener("change", update);
+    return () => {
+      hoverMq.removeEventListener("change", update);
+      mobileMq.removeEventListener("change", update);
+    };
   }, []);
 
-  const active = hovered && canHover;
+  // Desktop spins on hover; mobile auto-spins all cells (no hover to rely on).
+  const active = (hovered && canHover) || isMobile;
   const grayscale = product.isSold;
 
   return (
@@ -52,18 +72,25 @@ export function ProductCell({
         onFocus={() => setHovered(true)}
         onBlur={() => setHovered(false)}
       >
-        {/* Price — quiet centered text along the cell's bottom edge by default;
-            on hover (in sync with the spin/crossfade media) it fills a solid
-            neon-green circle with bold dark-ink text. */}
+        {/* Media gets its own area. On mobile we reserve a fixed strip at the
+            bottom (`bottom-12`) for the always-visible price so the label never
+            sits on top of the piece; on desktop the media fills the cell and
+            the price floats as a hover badge over it. */}
+        <div className="absolute inset-x-0 top-0 bottom-12 md:bottom-0">
+          <ProductMedia product={product} active={active} grayscale={grayscale} />
+        </div>
+
+        {/* Price — on mobile it rests in the reserved bottom strip, clearly
+            separated below the piece. On desktop it's quiet centered text along
+            the cell's bottom edge that, on hover (in sync with the spin /
+            crossfade media), fills a solid neon-green circle with bold ink. */}
         <span
-          className={`pointer-events-none absolute bottom-3 left-1/2 z-10 flex h-11 min-w-11 -translate-x-1/2 items-center justify-center rounded-full px-2.5 text-[12px] leading-none tracking-wide tabular-nums transition-all duration-300 ease-out group-hover:bg-[#03F94D] group-hover:font-bold group-hover:text-[#413E3F] ${
+          className={`pointer-events-none absolute bottom-0 left-1/2 z-10 flex h-12 min-w-11 -translate-x-1/2 items-center justify-center rounded-full px-2.5 text-[12px] leading-none tracking-wide tabular-nums transition-all duration-300 ease-out md:bottom-3 md:h-11 group-hover:bg-[#03F94D] group-hover:font-bold group-hover:text-[#413E3F] ${
             product.isSold ? "font-medium text-neutral-400" : "font-medium text-neutral-600"
           }`}
         >
           {product.isSold ? "sold" : priceLabel(product.price)}
         </span>
-
-        <ProductMedia product={product} active={active} grayscale={grayscale} />
       </Link>
     </li>
   );

@@ -45,9 +45,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${lora.variable} ${anton.variable} ${playfair.variable} ${figtree.variable} h-full`}
+      className={`${lora.variable} ${anton.variable} ${playfair.variable} ${figtree.variable}`}
     >
-      <body className="min-h-full antialiased">{children}</body>
+      <body className="min-h-[100svh] antialiased">{children}</body>
     </html>
   );
 }

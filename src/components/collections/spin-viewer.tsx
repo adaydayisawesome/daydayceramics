@@ -27,7 +27,9 @@ type Status = "idle" | "loading" | "ready" | "unavailable";
 /**
  * 360° spin viewer for `spin360` products.
  *
- * Renders the static `fallbackImage` until the viewer is "active" (hovered).
+ * Renders the static `fallbackImage` until the viewer is "active" — hovered on
+ * desktop, or auto-active by default on mobile (the caller forces `active` on
+ * touch / no-hover devices so every piece turns on its own).
  * On first activation it fetches `${spinMedia}/manifest.json` and plays the spin
  * by moving the background-position across the packed SPRITE SHEET (the same
  * committed asset the home spinner uses).

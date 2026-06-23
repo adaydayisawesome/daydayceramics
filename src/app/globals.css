@@ -95,14 +95,23 @@
   }
 
   html {
-    height: 100%;
+    /* No forced `height: 100%`: on mobile that resolves to the LARGER layout
+       viewport (toolbars retracted), which is taller than the `svh`-sized page
+       content and leaves a scrollable blank below the last row. Letting <html>
+       size to content (with the svh floor below on <body>) makes the document
+       end exactly at the content. */
     transition: background-color 700ms ease-in-out;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-lora), Georgia, "Times New Roman", serif;
-    min-height: 100%;
+    /* Reset the 8px user-agent body margin — left in, it adds a scrollable gap
+       above/below <main> (the page's white plane showing past the last row). */
+    margin: 0;
+    /* svh (small viewport) floor matches the grid's row math and <main>'s
+       min-height, so a short page fills exactly one screen with no extra. */
+    min-height: 100svh;
     -webkit-font-smoothing: antialiased;
     transition: background-color 700ms ease-in-out;
   }

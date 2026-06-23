@@ -252,9 +252,13 @@ export function DayScrollExperience() {
     };
   }, [smoothScrollTo, animateScrollTo]);
 
-  // Hover fills the DAY completely (as it did before); scroll fills it
-  // progressively. The visible fill is whichever is greater.
-  const effectiveFill = Math.max(fill, hovered ? 1 : 0);
+  // The DAY marker is FILLED BY DEFAULT: the resting state shows the brushed
+  // neon-green marker fill (matching the old hover look) the instant the page
+  // loads. Scroll (`fill`) and hover (`hovered`) still feed the snap/choreo
+  // logic below, but the marker stays fully painted regardless — so the
+  // scroll-to-fill animation is now effectively redundant, as intended.
+  const RESTING_FILL = 1;
+  const effectiveFill = Math.max(fill, hovered ? 1 : 0, RESTING_FILL);
 
   // About text reveal: driven by the SAME separation progress as the hands so
   // the story fades + slides up the instant the hands begin to part (no empty
