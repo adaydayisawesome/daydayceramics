@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Mail } from "lucide-react";
 
 const bodyClass =
@@ -94,6 +95,13 @@ export function AboutContent({ showHands = true }: { showHands?: boolean }) {
           </p>
 
           <div className="mt-8 flex items-center gap-4">
+            <Link
+              href="/"
+              className="inline-flex h-6 cursor-pointer items-center rounded-full border border-[#413E3F] bg-transparent px-3 text-[11px] font-semibold tracking-wide text-[#413E3F] transition-colors hover:bg-[#03F94D]"
+            >
+              VIEW GALLERY
+            </Link>
+
             <a
               href="https://www.instagram.com/dayday.ceramics/"
               target="_blank"
@@ -119,9 +127,8 @@ export function AboutContent({ showHands = true }: { showHands?: boolean }) {
               </svg>
             </a>
 
-            {/* TODO: email destination is TBD — placeholder href for now. */}
             <a
-              href="#"
+              href="mailto:huilindesign@gmail.com"
               aria-label="Email"
               className="inline-flex cursor-pointer text-[#413E3F] transition-opacity hover:opacity-70"
             >
