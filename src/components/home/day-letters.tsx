@@ -55,7 +55,7 @@ export function DayLetters() {
   return (
     <main
       onClick={handleBackgroundClick}
-      className="flex h-screen w-full flex-row items-center justify-center gap-[6vw] overflow-hidden transition-colors ease-in-out md:gap-[98px]"
+      className="flex h-[100svh] w-full flex-row items-center justify-center gap-[6vw] overflow-hidden transition-colors ease-in-out md:gap-[98px]"
       style={{
         backgroundColor: hovered ? INK : CREAM,
         transitionDuration: `${HOVER_COLOR_MS}ms`,
