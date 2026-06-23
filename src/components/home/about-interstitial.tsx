@@ -80,7 +80,7 @@ export function AboutInterstitial({ open, onClose }: AboutInterstitialProps) {
         size="icon"
         aria-label="Close"
         onClick={onClose}
-        className="group absolute top-6 left-6 z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-transparent p-0 transition-colors hover:bg-[#413E3F]"
+        className="group absolute top-6 left-6 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-transparent p-0 transition-colors hover:bg-[#413E3F]"
       >
         <X className="size-5 text-[#413E3F] transition-colors group-hover:text-[#F8F5EE]" />
       </Button>
