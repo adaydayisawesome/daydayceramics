@@ -58,6 +58,38 @@
     "price": 0,
     "isSold": false
   },
+  "darling-babies/blue-wave-on-black-sand": {
+    "category": "cups",
+    "title": "Blue Wave On Black Sand",
+    "defaultImage": "/images/products/darling-babies/blue-wave-on-black-sand/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/blue-wave-on-black-sand",
+    "detailImages": [
+      "/images/products/darling-babies/blue-wave-on-black-sand/detail/01.webp",
+      "/images/products/darling-babies/blue-wave-on-black-sand/detail/02.webp",
+      "/images/products/darling-babies/blue-wave-on-black-sand/detail/03.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/bowl-in-dark-clay": {
+    "category": "bowls",
+    "title": "Bowl In Dark Clay",
+    "defaultImage": "/images/products/darling-babies/bowl-in-dark-clay/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/bowl-in-dark-clay",
+    "detailImages": [
+      "/images/products/darling-babies/bowl-in-dark-clay/detail/01.webp",
+      "/images/products/darling-babies/bowl-in-dark-clay/detail/02.webp",
+      "/images/products/darling-babies/bowl-in-dark-clay/detail/03.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
   "darling-babies/green-celadon-tasting-cup": {
     "category": "cups",
     "title": "Green Celadon Tasting Cup",
@@ -67,13 +99,43 @@
     "detailImages": [
       "/images/products/darling-babies/green-celadon-tasting-cup/detail/01.webp",
       "/images/products/darling-babies/green-celadon-tasting-cup/detail/02.webp",
-      "/images/products/darling-babies/green-celadon-tasting-cup/detail/03.webp",
-      "/images/products/darling-babies/green-celadon-tasting-cup/detail/04.webp",
-      "/images/products/darling-babies/green-celadon-tasting-cup/detail/05.webp"
+      "/images/products/darling-babies/green-celadon-tasting-cup/detail/03.webp"
     ],
-    "detailVideos": [
-      "/images/products/darling-babies/green-celadon-tasting-cup/video/01.mp4"
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/guava-cup": {
+    "category": "cups",
+    "title": "Guava Cup",
+    "defaultImage": "/images/products/darling-babies/guava-cup/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/guava-cup",
+    "detailImages": [
+      "/images/products/darling-babies/guava-cup/detail/01.webp",
+      "/images/products/darling-babies/guava-cup/detail/02.webp",
+      "/images/products/darling-babies/guava-cup/detail/03.webp",
+      "/images/products/darling-babies/guava-cup/detail/04.webp"
     ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/guava-sharing-cup": {
+    "category": "cups",
+    "title": "Guava Sharing Cup",
+    "defaultImage": "/images/products/darling-babies/guava-sharing-cup/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/guava-sharing-cup",
+    "detailImages": [
+      "/images/products/darling-babies/guava-sharing-cup/detail/01.webp",
+      "/images/products/darling-babies/guava-sharing-cup/detail/02.webp",
+      "/images/products/darling-babies/guava-sharing-cup/detail/03.webp",
+      "/images/products/darling-babies/guava-sharing-cup/detail/04.webp"
+    ],
+    "detailVideos": [],
     "hoverType": "spin360",
     "price": 0,
     "isSold": false
@@ -88,6 +150,21 @@
       "/images/products/darling-babies/mug-with-half-heart-handle/detail/01.webp",
       "/images/products/darling-babies/mug-with-half-heart-handle/detail/02.webp",
       "/images/products/darling-babies/mug-with-half-heart-handle/detail/03.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/petal-matcha-bowl": {
+    "category": "bowls",
+    "title": "Petal Matcha Bowl",
+    "defaultImage": "/images/products/darling-babies/petal-matcha-bowl/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/petal-matcha-bowl",
+    "detailImages": [
+      "/images/products/darling-babies/petal-matcha-bowl/detail/01.webp",
+      "/images/products/darling-babies/petal-matcha-bowl/detail/02.webp"
     ],
     "detailVideos": [],
     "hoverType": "spin360",
@@ -121,6 +198,21 @@
       "/images/products/darling-babies/raku-white-bowl/detail/02.webp",
       "/images/products/darling-babies/raku-white-bowl/detail/03.webp",
       "/images/products/darling-babies/raku-white-bowl/detail/04.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/snow-cup": {
+    "category": "cups",
+    "title": "Snow Cup",
+    "defaultImage": "/images/products/darling-babies/snow-cup/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/snow-cup",
+    "detailImages": [
+      "/images/products/darling-babies/snow-cup/detail/01.webp",
+      "/images/products/darling-babies/snow-cup/detail/02.webp"
     ],
     "detailVideos": [],
     "hoverType": "spin360",

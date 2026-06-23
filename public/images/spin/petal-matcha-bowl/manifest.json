@@ -1,0 +1,15 @@
+{
+  "name": "petal-matcha-bowl",
+  "source": "video_20260622194923.mp4",
+  "createdAt": "2026-06-23T17:05:18.224Z",
+  "frameCount": 24,
+  "frameWidth": 770,
+  "frameHeight": 480,
+  "cols": 5,
+  "rows": 5,
+  "sprite": "sprite.webp",
+  "sequence": "frames/frame_%03d.webp",
+  "turns": 1,
+  "settleFrame": 0,
+  "spritePrint": "sprite-print.webp"
+}

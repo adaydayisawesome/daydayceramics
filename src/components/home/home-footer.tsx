@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { DayMark } from "../day-mark";
 import { CREAM, HOVER_COLOR_MS, INK } from "./constants";
 
 type HomeFooterProps = {
@@ -57,33 +58,5 @@ export function HomeFooter({ active, onBrandClick }: HomeFooterProps) {
         </Link>
       </div>
     </footer>
-  );
-}
-
-/**
- * DAY monogram mark (32×16). Rendered as a CSS mask filled with `currentColor`
- * so it inherits the footer's INK→CREAM flip (the ink artwork would otherwise
- * disappear on the hovered ink background). Source art: /images/day-logo.png.
- */
-function DayMark() {
-  return (
-    <span
-      role="img"
-      aria-label="DAY"
-      className="block shrink-0"
-      style={{
-        width: 32,
-        height: 16,
-        backgroundColor: "currentColor",
-        WebkitMaskImage: "url(/images/day-logo.png)",
-        maskImage: "url(/images/day-logo.png)",
-        WebkitMaskSize: "contain",
-        maskSize: "contain",
-        WebkitMaskRepeat: "no-repeat",
-        maskRepeat: "no-repeat",
-        WebkitMaskPosition: "center",
-        maskPosition: "center",
-      }}
-    />
   );
 }

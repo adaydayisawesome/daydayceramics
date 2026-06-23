@@ -3,29 +3,31 @@
 import { useEffect, useState } from "react";
 
 import { DayLetters } from "./day-letters";
-import { DayLettersV2 } from "./day-letters-v2";
 import { DayLettersV3 } from "./day-letters-v3";
+import { DayScrollExperience } from "./day-scroll-experience";
 
 type Version = 1 | 2 | 3;
 
 const VERSIONS: Version[] = [1, 2, 3];
 
+/** `/day` defaults to V2 — the new scroll-driven DAY→Y experience. */
 function parseVersion(value: string | null): Version {
   const n = Number(value);
-  return n === 2 || n === 3 ? n : 1;
+  return n === 1 || n === 3 ? n : 2;
 }
 
 /**
- * Client wrapper that holds the active home-page version and renders the
- * matching variant plus a floating dev-style version switcher.
+ * Hosts the DAY experience at `/day` and keeps the (intentionally off-brand)
+ * V1/V2/V3 floating switcher so the OLD home DAY variants stay previewable:
+ *   - V1 — the legacy per-letter DAY home (`DayLetters`), unchanged.
+ *   - V2 — the NEW scroll-driven DAY→Y→About experience (default).
+ *   - V3 — placeholder stub.
  *
  * The selection is mirrored to the URL as `?v=1|2|3` via `history.replaceState`
- * (no navigation / no Suspense boundary), and initialized from `window.location`
- * after mount. We deliberately avoid `useSearchParams` so this stays a simple
- * client toggle without forcing a Suspense wrapper.
+ * (no navigation / no Suspense), initialized from `window.location` after mount.
  */
-export function HomeVersions() {
-  const [version, setVersion] = useState<Version>(1);
+export function DayVersions() {
+  const [version, setVersion] = useState<Version>(2);
 
   useEffect(() => {
     const initial = parseVersion(
@@ -44,7 +46,7 @@ export function HomeVersions() {
   return (
     <>
       {version === 1 && <DayLetters />}
-      {version === 2 && <DayLettersV2 />}
+      {version === 2 && <DayScrollExperience />}
       {version === 3 && <DayLettersV3 />}
 
       <VersionSwitcher active={version} onSelect={selectVersion} />

@@ -1,4 +1,4 @@
-import type { Collection } from "@/lib/products";
+import type { ProductCellData } from "@/lib/products";
 import { ProductCell } from "./product-cell";
 
 /**
@@ -23,16 +23,16 @@ import { ProductCell } from "./product-cell";
  * Visual style: no borders, shadows, dividers or card chrome — the cells blend
  * into one continuous white plane.
  */
-export function ProductGrid({ collection }: { collection: Collection }) {
+export function ProductGrid({ cells }: { cells: ProductCellData[] }) {
   return (
     <>
       <style>{gridCss}</style>
       <ul className="ddc-grid">
-        {collection.products.map((product) => (
+        {cells.map(({ product, collectionSlug }) => (
           <ProductCell
-            key={product.id}
+            key={`${collectionSlug}/${product.id}`}
             product={product}
-            collectionSlug={collection.slug}
+            collectionSlug={collectionSlug}
           />
         ))}
       </ul>

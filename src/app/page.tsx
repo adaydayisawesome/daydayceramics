@@ -1,5 +1,5 @@
-import { HomeVersions } from "@/components/home/home-versions";
+import { HomeShop } from "@/components/home/home-shop";
 
 export default function Home() {
-  return <HomeVersions />;
+  return <HomeShop />;
 }

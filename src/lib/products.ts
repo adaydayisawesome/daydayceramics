@@ -178,9 +178,9 @@ const baseCollections: Collection[] = [
         shopifyVariantId: null,
       },
       {
-        id: "apple-peeled",
-        slug: "apple-peeled",
-        title: "Apple Peeled",
+        id: "raku-blue-holder",
+        slug: "raku-blue-holder",
+        title: "Raku Blue Holder",
         category: "objects",
         price: 0,
         isSold: false,
@@ -226,9 +226,9 @@ const baseCollections: Collection[] = [
         shopifyVariantId: null,
       },
       {
-        id: "raku-blue-holder",
-        slug: "raku-blue-holder",
-        title: "Raku Blue Holder",
+        id: "apple-peeled",
+        slug: "apple-peeled",
+        title: "Apple Peeled",
         category: "objects",
         price: 0,
         isSold: false,
@@ -464,6 +464,26 @@ export const collections: Collection[] = buildCollections(
 
 export function getCollection(slug: string): Collection | undefined {
   return collections.find((c) => c.slug === slug);
+}
+
+/**
+ * A grid cell pairs a product with the collection slug it lives under, so the
+ * grid can render a SINGLE flat collection or a COMBINED list of every product
+ * across collections while each cell still links to its own detail route.
+ */
+export type ProductCellData = { product: Product; collectionSlug: string };
+
+/** Cells for one collection's grid (collection page). */
+export function collectionCells(collection: Collection): ProductCellData[] {
+  return collection.products.map((product) => ({
+    product,
+    collectionSlug: collection.slug,
+  }));
+}
+
+/** Every product across all collections, flattened for the combined home grid. */
+export function allProductCells(): ProductCellData[] {
+  return collections.flatMap((collection) => collectionCells(collection));
 }
 
 /** Look up a product within a collection by its SLUG (not id). */

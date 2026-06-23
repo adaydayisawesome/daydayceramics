@@ -52,10 +52,12 @@ export function ProductCell({
         onFocus={() => setHovered(true)}
         onBlur={() => setHovered(false)}
       >
-        {/* Quiet price — centered along the cell's bottom edge. */}
+        {/* Price — quiet centered text along the cell's bottom edge by default;
+            on hover (in sync with the spin/crossfade media) it fills a solid
+            neon-green circle with bold dark-ink text. */}
         <span
-          className={`pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 text-[12px] leading-none font-medium tracking-wide tabular-nums ${
-            product.isSold ? "text-neutral-400" : "text-neutral-600"
+          className={`pointer-events-none absolute bottom-3 left-1/2 z-10 flex h-11 min-w-11 -translate-x-1/2 items-center justify-center rounded-full px-2.5 text-[12px] leading-none tracking-wide tabular-nums transition-all duration-300 ease-out group-hover:bg-[#03F94D] group-hover:font-bold group-hover:text-[#413E3F] ${
+            product.isSold ? "font-medium text-neutral-400" : "font-medium text-neutral-600"
           }`}
         >
           {product.isSold ? "sold" : priceLabel(product.price)}

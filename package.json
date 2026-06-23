@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:clean": "rm -rf .next && next build && next start",
     "lint": "eslint",
     "import-assets": "node tools/asset-pipeline/import.mjs"
   },

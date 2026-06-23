@@ -30,7 +30,6 @@ import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
-  readFileSync,
   readdirSync,
   rmSync,
   writeFileSync,
@@ -262,20 +261,76 @@ async function alphaBBox(path, threshold = 16) {
     .raw()
     .toBuffer({ resolveWithObject: true });
   const { width, height, channels } = info;
+  const n = width * height;
+
+  // Binary alpha mask.
+  const mask = new Uint8Array(n);
+  for (let i = 0, p = channels - 1; i < n; i++, p += channels) {
+    if (data[p] > threshold) mask[i] = 1;
+  }
+
+  // Label connected components (8-connectivity) with an iterative flood fill,
+  // then keep only the SIGNIFICANT ones for the bounding box. Background
+  // removal occasionally leaves a stray speck (an un-matted shadow edge or a
+  // bit of the turntable) far from the object; including it in the per-frame
+  // bbox inflates the shared union crop and pushes the object off-center. By
+  // discarding tiny disconnected islands we get a bbox that hugs the real
+  // piece. Multi-part objects are preserved: any component within 2% of the
+  // largest (and ≥64px) is kept, only true specks are dropped.
+  const label = new Int32Array(n).fill(-1);
+  const stack = new Int32Array(n);
+  const comps = [];
+  for (let start = 0; start < n; start++) {
+    if (!mask[start] || label[start] !== -1) continue;
+    const id = comps.length;
+    let sp = 0;
+    stack[sp++] = start;
+    label[start] = id;
+    let count = 0,
+      minX = width,
+      minY = height,
+      maxX = -1,
+      maxY = -1;
+    while (sp > 0) {
+      const idx = stack[--sp];
+      const x = idx % width;
+      const y = (idx - x) / width;
+      count++;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      for (let dy = -1; dy <= 1; dy++) {
+        const ny = y + dy;
+        if (ny < 0 || ny >= height) continue;
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          const nx = x + dx;
+          if (nx < 0 || nx >= width) continue;
+          const nIdx = ny * width + nx;
+          if (mask[nIdx] && label[nIdx] === -1) {
+            label[nIdx] = id;
+            stack[sp++] = nIdx;
+          }
+        }
+      }
+    }
+    comps.push({ count, minX, minY, maxX, maxY });
+  }
+  if (!comps.length) return null;
+
+  const largest = comps.reduce((a, b) => (b.count > a.count ? b : a));
+  const keepMin = Math.max(64, largest.count * 0.02);
   let minX = width,
     minY = height,
     maxX = -1,
     maxY = -1;
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const a = data[(y * width + x) * channels + (channels - 1)];
-      if (a > threshold) {
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-      }
-    }
+  for (const c of comps) {
+    if (c.count < keepMin) continue;
+    if (c.minX < minX) minX = c.minX;
+    if (c.minY < minY) minY = c.minY;
+    if (c.maxX > maxX) maxX = c.maxX;
+    if (c.maxY > maxY) maxY = c.maxY;
   }
   if (maxX < 0) return null;
   return { minX, minY, maxX, maxY, width, height };

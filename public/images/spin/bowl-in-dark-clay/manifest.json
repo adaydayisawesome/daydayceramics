@@ -1,0 +1,15 @@
+{
+  "name": "bowl-in-dark-clay",
+  "source": "video_20260622194506.mp4",
+  "createdAt": "2026-06-23T18:43:27.389Z",
+  "frameCount": 24,
+  "frameWidth": 914,
+  "frameHeight": 480,
+  "cols": 5,
+  "rows": 5,
+  "sprite": "sprite.webp",
+  "sequence": "frames/frame_%03d.webp",
+  "turns": 1,
+  "settleFrame": 0,
+  "spritePrint": "sprite-print.webp"
+}
