@@ -1,0 +1,15 @@
+{
+  "name": "green-celadon-tasting-cup",
+  "source": "video_20260622191809.mp4",
+  "createdAt": "2026-06-23T03:07:09.298Z",
+  "frameCount": 24,
+  "frameWidth": 610,
+  "frameHeight": 480,
+  "cols": 5,
+  "rows": 5,
+  "sprite": "sprite.webp",
+  "sequence": "frames/frame_%03d.webp",
+  "turns": 1,
+  "settleFrame": 0,
+  "spritePrint": "sprite-print.webp"
+}

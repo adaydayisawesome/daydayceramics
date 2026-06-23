@@ -1,1 +1,130 @@
-{}
+{
+  "darling-babies/apple-melted": {
+    "category": "objects",
+    "title": "Apple Melted",
+    "defaultImage": "/images/products/darling-babies/apple-melted/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/apple-melted",
+    "detailImages": [],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/apple-peeled": {
+    "category": "objects",
+    "title": "Apple Peeled",
+    "defaultImage": "/images/products/darling-babies/apple-peeled/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/apple-peeled",
+    "detailImages": [
+      "/images/products/darling-babies/apple-peeled/detail/01.webp",
+      "/images/products/darling-babies/apple-peeled/detail/02.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/apple-with-a-hole": {
+    "category": "objects",
+    "title": "Apple With A Hole",
+    "defaultImage": "/images/products/darling-babies/apple-with-a-hole/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/apple-with-a-hole",
+    "detailImages": [
+      "/images/products/darling-babies/apple-with-a-hole/detail/01.webp",
+      "/images/products/darling-babies/apple-with-a-hole/detail/02.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/blue-vase": {
+    "category": "objects",
+    "title": "Blue Vase",
+    "defaultImage": "/images/products/darling-babies/blue-vase/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/blue-vase",
+    "detailImages": [
+      "/images/products/darling-babies/blue-vase/detail/01.webp",
+      "/images/products/darling-babies/blue-vase/detail/02.webp",
+      "/images/products/darling-babies/blue-vase/detail/03.webp",
+      "/images/products/darling-babies/blue-vase/detail/04.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/green-celadon-tasting-cup": {
+    "category": "cups",
+    "title": "Green Celadon Tasting Cup",
+    "defaultImage": "/images/products/darling-babies/green-celadon-tasting-cup/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/green-celadon-tasting-cup",
+    "detailImages": [
+      "/images/products/darling-babies/green-celadon-tasting-cup/detail/01.webp",
+      "/images/products/darling-babies/green-celadon-tasting-cup/detail/02.webp",
+      "/images/products/darling-babies/green-celadon-tasting-cup/detail/03.webp",
+      "/images/products/darling-babies/green-celadon-tasting-cup/detail/04.webp",
+      "/images/products/darling-babies/green-celadon-tasting-cup/detail/05.webp"
+    ],
+    "detailVideos": [
+      "/images/products/darling-babies/green-celadon-tasting-cup/video/01.mp4"
+    ],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/mug-with-half-heart-handle": {
+    "category": "mugs",
+    "title": "Mug With Half Heart Handle",
+    "defaultImage": "/images/products/darling-babies/mug-with-half-heart-handle/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/mug-with-half-heart-handle",
+    "detailImages": [
+      "/images/products/darling-babies/mug-with-half-heart-handle/detail/01.webp",
+      "/images/products/darling-babies/mug-with-half-heart-handle/detail/02.webp",
+      "/images/products/darling-babies/mug-with-half-heart-handle/detail/03.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/raku-blue-holder": {
+    "category": "objects",
+    "title": "Raku Blue Holder",
+    "defaultImage": "/images/products/darling-babies/raku-blue-holder/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/raku-blue-holder",
+    "detailImages": [
+      "/images/products/darling-babies/raku-blue-holder/detail/01.webp",
+      "/images/products/darling-babies/raku-blue-holder/detail/02.webp",
+      "/images/products/darling-babies/raku-blue-holder/detail/03.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "darling-babies/raku-white-bowl": {
+    "category": "objects",
+    "title": "Raku White Bowl",
+    "defaultImage": "/images/products/darling-babies/raku-white-bowl/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/raku-white-bowl",
+    "detailImages": [
+      "/images/products/darling-babies/raku-white-bowl/detail/01.webp",
+      "/images/products/darling-babies/raku-white-bowl/detail/02.webp",
+      "/images/products/darling-babies/raku-white-bowl/detail/03.webp",
+      "/images/products/darling-babies/raku-white-bowl/detail/04.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  }
+}

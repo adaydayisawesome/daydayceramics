@@ -1,0 +1,15 @@
+{
+  "name": "apple-melted",
+  "source": "video_20260618202118.mp4",
+  "createdAt": "2026-06-23T03:08:47.770Z",
+  "frameCount": 24,
+  "frameWidth": 606,
+  "frameHeight": 480,
+  "cols": 5,
+  "rows": 5,
+  "sprite": "sprite.webp",
+  "sequence": "frames/frame_%03d.webp",
+  "turns": 1,
+  "settleFrame": 0,
+  "spritePrint": "sprite-print.webp"
+}

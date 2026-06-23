@@ -30,10 +30,12 @@ export default async function CollectionGridPage({
   const other = collections.find((c) => c.slug !== data.slug);
 
   return (
-    <main className="flex h-[100svh] flex-col overflow-hidden bg-white font-[family-name:var(--font-figtree)] text-neutral-900">
+    <main className="flex min-h-[100svh] flex-col bg-[#FAF5ED] font-[family-name:var(--font-figtree)] text-neutral-900">
       {/* Quiet header — circular icon buttons mirror the home "About" close
-          button (40x40, 24px from the edge). Title is optically centered. */}
-      <header className="relative flex items-center justify-between p-6">
+          button (40x40, 24px from the edge). Title is optically centered.
+          Sticky so the back / smiley nav stays reachable on long, scrolling
+          grids; its 88px height feeds the grid's `--ddc-header-h` row math. */}
+      <header className="sticky top-0 z-20 flex items-center justify-between bg-[#FAF5ED] p-6">
         <Link
           href="/"
           aria-label="Back to home"
@@ -59,7 +61,7 @@ export default async function CollectionGridPage({
         )}
       </header>
 
-      <div className="min-h-0 flex-1">
+      <div className="flex-1">
         <ProductGrid collection={data} />
       </div>
     </main>

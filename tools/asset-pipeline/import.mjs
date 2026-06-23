@@ -44,6 +44,25 @@
  *   --quality <1..100>        WebP quality for photos (default 82).
  *   --spin-frames <N>         Frames to sample for the spin (forwarded to build.mjs).
  *   --spin-matte <mode>       Background removal for the spin: imgly | rembg | none.
+ *   --hero <substr>           When a piece ships several photos (e.g. a zip) and
+ *                             none is named main/hero, pick the hero photo whose
+ *                             filename contains this substring (case-insensitive).
+ *
+ * ZIP / GALLERY pieces: a piece folder may instead contain a single `.zip`
+ * (any name), OR a loose `<Name>.zip` may sit directly in the category folder
+ * (slug = kebab-cased zip basename, e.g. `Raku_White_Bowl.zip` ->
+ * `raku-white-bowl`). It is unpacked to a temp dir and its contents classified —
+ * videos become the spin source, images become the gallery. Junk/odd entries
+ * (macOS resource forks, dotfiles, phone share/scan exports like `s67 ...jpg`)
+ * are ignored. The HERO (grid static) is matted→transparent like a loose
+ * `main.*`; EVERY photo is ALSO optimized with its ORIGINAL background into
+ * `.../<piece>/detail/NN.webp` and recorded as the detail-page gallery
+ * (`detailImages`). Hero precedence: explicit main/hero name > --hero substring
+ * > first alphabetically. Loose `main/alt/spin` still work.
+ *
+ * When a piece ships MORE THAN ONE video, the first/explicit clip drives the
+ * 360 spin and each remaining clip is optimized into `.../<piece>/video/NN.mp4`
+ * and surfaced on the detail page as an inline player (`detailVideos`).
  *
  * Product spins are COLOR (the grid/detail viewer uses the color sprite/frames).
  * The halftone "print" treatment is HOME-only and is NOT applied here.
@@ -51,17 +70,21 @@
 
 import { execFileSync } from "node:child_process";
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
+import os from "node:os";
 import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import sharp from "sharp";
+import ffmpegPath from "ffmpeg-static";
 
 import { matteCropToWebp } from "./matte.mjs";
 
@@ -85,6 +108,7 @@ const README_DST = join(INCOMING_DIR, "README.md");
 
 const PHOTO_EXTS = ["jpg", "jpeg", "png", "webp", "heic", "tif", "tiff"];
 const VIDEO_EXTS = ["mp4", "mov", "m4v", "webm"];
+const ARCHIVE_EXTS = ["zip"];
 
 // ---------------------------------------------------------------------------
 // CLI parsing
@@ -116,6 +140,10 @@ const MAX_EDGE = args["max-edge"] ? parseInt(args["max-edge"], 10) : 1600;
 const QUALITY = args.quality ? parseInt(args.quality, 10) : 82;
 const SPIN_FRAMES = args["spin-frames"] ? String(args["spin-frames"]) : null;
 const SPIN_MATTE = args["spin-matte"] ? String(args["spin-matte"]) : null;
+// Optional hint to pick which photo becomes the grid HERO when a piece ships
+// several photos (e.g. inside a zip) and none is explicitly named main/hero.
+// Matched as a case-insensitive substring against the photo filename.
+const HERO = args.hero ? String(args.hero) : null;
 // Product photos are background-removed to transparent + auto-cropped BY
 // DEFAULT so pieces float on the page (no backdrop box / shadow), matching the
 // transparent spin frames. Opt out with --no-matte / --keep-bg for photos that
@@ -177,6 +205,24 @@ function readConfig() {
   return { collectionSlugs, categorySlugs };
 }
 
+/** Filename without its extension, e.g. "Raku_White_Bowl.zip" -> "Raku_White_Bowl". */
+function baseNameNoExt(name) {
+  const dot = name.lastIndexOf(".");
+  return dot > 0 ? name.slice(0, dot) : name;
+}
+
+/**
+ * Kebab-case a free-form name into a URL/slug-safe form, e.g.
+ * "Raku_White_Bowl" / "Raku White Bowl" -> "raku-white-bowl".
+ */
+function slugify(name) {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 /** Title-case a kebab slug, e.g. `ramen-bowl-blue` -> "Ramen Bowl Blue". */
 function humanizeSlug(slug) {
   return slug
@@ -208,6 +254,13 @@ full guide.
         main.<ext>    # required hero photo  -> defaultImage
         alt.<ext>     # optional 2nd angle   -> alternateImage / alternateAngle hover
         spin.<ext>    # optional 360 video   -> spin360 hover (COLOR)
+
+Or drop a single **\`.zip\`** in the piece folder (any name) holding several
+photos + a 360 video. It is unpacked and classified automatically: the video
+becomes the spin, the photos become the detail-page **gallery**, and one photo
+becomes the matted grid hero (name a photo \`main\`/\`hero\`, pass
+\`--hero <substr>\`, or it defaults to the first alphabetically). Gallery photos
+keep their original background; only the grid hero + spin are matted.
 
 - **<collection>**: ${collList}
 - **<category>**: ${catList}
@@ -288,16 +341,82 @@ function extOf(name) {
   return extname(name).slice(1).toLowerCase();
 }
 
-/** Find a file in `files` whose basename === role (case-insensitive) and whose
- * extension is in `exts`. Returns the filename or null. */
-function findRole(files, role, exts) {
-  const match = files.find((f) => {
-    const dot = f.lastIndexOf(".");
-    if (dot <= 0) return false;
-    const base = f.slice(0, dot).toLowerCase();
-    return base === role && exts.includes(extOf(f));
-  });
-  return match ?? null;
+/** Lowercased basename (no extension) of a filename, e.g. "Main.JPG" -> "main". */
+function baseName(name) {
+  const dot = name.lastIndexOf(".");
+  return (dot > 0 ? name.slice(0, dot) : name).toLowerCase();
+}
+
+/**
+ * True for odd/junk archive entries we must NOT treat as real product media,
+ * even when they carry an image/video extension. Covers macOS resource forks
+ * (`__MACOSX/`, `._foo`), dotfiles, and the share/scan exports some phones drop
+ * into a folder (e.g. `s67 2026-06-20 105746DF1BFE628BAC.jpg`). Real shots use
+ * the camera-roll `IMG_####` / `video_########` naming and pass through.
+ */
+function isJunkEntry(name) {
+  const base = name.split("/").pop() ?? name;
+  if (!base || base.startsWith(".")) return true;
+  if (/__MACOSX/i.test(name)) return true;
+  if (/^s\d+[\s_-]/i.test(base)) return true;
+  return false;
+}
+
+/**
+ * Gather a piece's input files as `{ name, path }` entries from BOTH the loose
+ * files in its folder AND any `.zip` archives it contains (unpacked, flattened,
+ * to `workDir`). Returns the entries plus the temp `workDir` (null when no zip)
+ * so the caller can clean it up. Uses the system `unzip`.
+ */
+function collectPieceEntries(dir, files) {
+  const entries = files
+    .filter((f) => !ARCHIVE_EXTS.includes(extOf(f)))
+    .map((name) => ({ name, path: join(dir, name) }));
+
+  const zips = files.filter((f) => ARCHIVE_EXTS.includes(extOf(f)));
+  let workDir = null;
+  if (zips.length) {
+    workDir = join(os.tmpdir(), `asset-zip-${process.pid}-${Date.now()}`);
+    mkdirSync(workDir, { recursive: true });
+    for (const z of zips) {
+      // -o overwrite, -j junk paths (flatten any nested folders in the archive).
+      execFileSync("unzip", ["-o", "-j", join(dir, z), "-d", workDir], {
+        stdio: "ignore",
+      });
+    }
+    for (const name of listFiles(workDir)) {
+      entries.push({ name, path: join(workDir, name) });
+    }
+  }
+  return { entries, workDir };
+}
+
+/** Like `findRole`, but over `{ name, path }` entries. Returns the entry/null. */
+function findRoleEntry(entries, role, exts) {
+  return (
+    entries.find((e) => baseName(e.name) === role && exts.includes(extOf(e.name))) ??
+    null
+  );
+}
+
+/**
+ * Choose the grid HERO photo from a list of `{ name, path }` photo entries.
+ * Precedence: explicit `main.*`/`hero.*` name > `--hero <substr>` match >
+ * first alphabetically. Returns the entry (or null when there are no photos).
+ */
+function pickHero(photoEntries, key) {
+  if (!photoEntries.length) return null;
+  const explicit =
+    findRoleEntry(photoEntries, "main", PHOTO_EXTS) ??
+    findRoleEntry(photoEntries, "hero", PHOTO_EXTS);
+  if (explicit) return explicit;
+  if (HERO) {
+    const want = HERO.toLowerCase();
+    const hit = photoEntries.find((e) => e.name.toLowerCase().includes(want));
+    if (hit) return hit;
+    addWarning(`--hero "${HERO}" matched no photo for ${key}; using first alphabetically.`);
+  }
+  return [...photoEntries].sort((a, b) => a.name.localeCompare(b.name))[0];
 }
 
 /** True if `out` exists and is at least as new as `src` (skip-unchanged). */
@@ -314,13 +433,16 @@ function isUpToDate(src, out) {
 // ---------------------------------------------------------------------------
 // Image optimization
 // ---------------------------------------------------------------------------
-async function optimizeImage(srcPath, outPath, label) {
+async function optimizeImage(srcPath, outPath, label, opts = {}) {
+  // `keepBg` may be forced per call (gallery/detail photos always keep their
+  // original background); otherwise fall back to the global matte default.
+  const keepBg = opts.keepBg ?? KEEP_BG;
   if (isUpToDate(srcPath, outPath)) {
     log(`  ${label}: up to date, skipping (${rel(outPath)})`);
     summary.skipped++;
     return true;
   }
-  const mode = KEEP_BG ? "keep background" : "matte → transparent";
+  const mode = keepBg ? "keep background" : "matte → transparent";
   if (DRY_RUN) {
     log(`  ${label}: would optimize (${mode}) ${rel(srcPath)} -> ${rel(outPath)}`);
     summary.images++;
@@ -329,7 +451,7 @@ async function optimizeImage(srcPath, outPath, label) {
   try {
     mkdirSync(dirname(outPath), { recursive: true });
     let info;
-    if (KEEP_BG) {
+    if (keepBg) {
       // Keep the original background; just orient, downscale, and encode.
       info = await sharp(srcPath, { failOn: "none" })
         .rotate() // respect EXIF orientation
@@ -361,7 +483,7 @@ async function optimizeImage(srcPath, outPath, label) {
   } catch (e) {
     addWarning(
       `failed to optimize ${rel(srcPath)} (${e.message}). ` +
-        (KEEP_BG
+        (keepBg
           ? ""
           : "Matting uses @imgly/background-removal-node (model download needs " +
             "network on first run); pass --no-matte to keep the background. ") +
@@ -370,6 +492,68 @@ async function optimizeImage(srcPath, outPath, label) {
           : "")
     );
     return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Detail video optimization (extra clips beyond the 360 spin)
+// ---------------------------------------------------------------------------
+/**
+ * Optimize an EXTRA clip (a piece shipped more than one video; the first/explicit
+ * one drives the 360 spin) into a web-friendly, muted, faststart H.264 mp4 that
+ * the detail page plays inline. Falls back to a raw copy if ffmpeg is missing.
+ */
+async function optimizeVideo(srcPath, outPath, label) {
+  if (isUpToDate(srcPath, outPath)) {
+    log(`  ${label}: up to date, skipping (${rel(outPath)})`);
+    summary.skipped++;
+    return true;
+  }
+  if (DRY_RUN) {
+    log(`  ${label}: would optimize ${rel(srcPath)} -> ${rel(outPath)}`);
+    summary.images++;
+    return true;
+  }
+  try {
+    mkdirSync(dirname(outPath), { recursive: true });
+    execFileSync(
+      ffmpegPath,
+      [
+        "-y",
+        "-i",
+        srcPath,
+        "-an", // detail clips render muted
+        "-vf",
+        "scale='min(1080,iw)':-2",
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-crf",
+        "26",
+        "-preset",
+        "veryfast",
+        "-movflags",
+        "+faststart",
+        outPath,
+      ],
+      { stdio: "ignore" }
+    );
+    log(`  ${label}: wrote ${rel(outPath)}`);
+    summary.images++;
+    return true;
+  } catch (e) {
+    // ffmpeg-static ships the binary offline, but if the re-encode fails fall
+    // back to a raw copy so the clip is still surfaced (never silently dropped).
+    try {
+      copyFileSync(srcPath, outPath);
+      log(`  ${label}: ffmpeg failed (${e.message}); copied raw -> ${rel(outPath)}`);
+      summary.images++;
+      return true;
+    } catch (e2) {
+      addWarning(`failed to write detail video ${rel(outPath)} (${e2.message}).`);
+      return false;
+    }
   }
 }
 
@@ -474,90 +658,189 @@ async function main() {
         );
         continue;
       }
-      for (const piece of listDirs(join(INCOMING_DIR, collection, category))) {
-        const slug = piece;
+      const categoryDir = join(INCOMING_DIR, collection, category);
+      // A "piece unit" is either a piece SUBFOLDER (slug = folder name, the
+      // classic convention) OR a loose `.zip` dropped directly in the category
+      // folder (slug = kebab-cased zip basename, e.g. `Raku_White_Bowl.zip` ->
+      // `raku-white-bowl`). The latter lets a user just drop a zip without
+      // first making a piece folder; either way it's handled identically below.
+      const units = [];
+      for (const piece of listDirs(categoryDir)) {
+        units.push({
+          slug: piece,
+          dir: join(categoryDir, piece),
+          files: listFiles(join(categoryDir, piece)),
+        });
+      }
+      for (const f of listFiles(categoryDir)) {
+        if (ARCHIVE_EXTS.includes(extOf(f))) {
+          units.push({ slug: slugify(baseNameNoExt(f)), dir: categoryDir, files: [f] });
+        }
+      }
+
+      for (const unit of units) {
+        const slug = unit.slug;
         const key = `${collection}/${slug}`;
         if (ONLY && key !== ONLY && ONLY !== `${collection}/${category}/${slug}`) {
           continue;
         }
-        const dir = join(INCOMING_DIR, collection, category, piece);
-        const files = listFiles(dir);
+        const dir = unit.dir;
+        const files = unit.files;
         if (!files.length) continue;
         processedAny = true;
 
         log(`\n${collection}/${category}/${slug}`);
 
-        let mainFile = findRole(files, "main", PHOTO_EXTS);
-        const altFile = findRole(files, "alt", PHOTO_EXTS);
-        const spinFile = findRole(files, "spin", VIDEO_EXTS);
-
-        // Fallback: a lone, non-role-named image is treated as the hero.
-        if (!mainFile) {
-          const lone = files.filter(
-            (f) => PHOTO_EXTS.includes(extOf(f)) && f !== altFile
+        // Gather inputs from loose files AND any `.zip` archive (unpacked to a
+        // temp dir). Classify by type so the same code path serves both the
+        // loose `main/alt/spin` convention and zip/gallery drops.
+        const { entries, workDir } = collectPieceEntries(dir, files);
+        try {
+          // Drop junk/odd entries (macOS resource forks, dotfiles, phone
+          // share/scan exports like `s67 ...jpg`) BEFORE classifying, so they
+          // never become a hero/gallery/spin source.
+          const usable = entries.filter((e) => !isJunkEntry(e.name));
+          const photoEntries = usable.filter((e) =>
+            PHOTO_EXTS.includes(extOf(e.name))
           );
-          if (lone.length === 1) {
-            mainFile = lone[0];
-            log(`  (using lone image "${mainFile}" as main)`);
+          // Sort videos for deterministic selection (the first clip drives the
+          // spin; any others are surfaced as detail clips).
+          const videoEntries = usable
+            .filter((e) => VIDEO_EXTS.includes(extOf(e.name)))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          // HERO (grid static): explicit main/hero name > --hero > 1st alpha.
+          const heroEntry = pickHero(photoEntries, key);
+          // ALT (loose convention only): explicit alt.* second angle.
+          const altEntry = findRoleEntry(photoEntries, "alt", PHOTO_EXTS);
+          // SPIN source: explicit spin.* video > first video (sorted).
+          const spinEntry =
+            findRoleEntry(videoEntries, "spin", VIDEO_EXTS) ??
+            (videoEntries.length ? videoEntries[0] : null);
+
+          // Start from any existing entry so price/isSold (and prior asset paths)
+          // are preserved, then refresh derived fields from the folder.
+          const prev = generated[key] ?? {};
+          const entry = {
+            category,
+            title: humanizeSlug(slug),
+            defaultImage: prev.defaultImage ?? null,
+            alternateImage: null,
+            spinMedia: null,
+            detailImages: [],
+            detailVideos: [],
+            hoverType: "staticOnly",
+            price: typeof prev.price === "number" ? prev.price : 0,
+            isSold: typeof prev.isSold === "boolean" ? prev.isSold : false,
+          };
+
+          if (heroEntry) {
+            const out = join(PRODUCTS_OUT_ROOT, collection, slug, "main.webp");
+            log(`  hero: ${heroEntry.name}`);
+            if (await optimizeImage(heroEntry.path, out, "main")) {
+              entry.defaultImage = `/images/products/${collection}/${slug}/main.webp`;
+            }
+          } else {
+            addWarning(
+              `"${collection}/${category}/${slug}" has no photo; ` +
+                "skipping (a hero photo is required to add the piece)."
+            );
+            continue;
           }
-        }
 
-        // Start from any existing entry so price/isSold (and prior asset paths)
-        // are preserved, then refresh derived fields from the folder.
-        const prev = generated[key] ?? {};
-        const entry = {
-          category,
-          title: humanizeSlug(slug),
-          defaultImage: prev.defaultImage ?? null,
-          alternateImage: null,
-          spinMedia: null,
-          hoverType: "staticOnly",
-          price: typeof prev.price === "number" ? prev.price : 0,
-          isSold: typeof prev.isSold === "boolean" ? prev.isSold : false,
-        };
-
-        if (mainFile) {
-          const out = join(PRODUCTS_OUT_ROOT, collection, slug, "main.webp");
-          if (await optimizeImage(join(dir, mainFile), out, "main")) {
-            entry.defaultImage = `/images/products/${collection}/${slug}/main.webp`;
+          if (altEntry) {
+            const out = join(PRODUCTS_OUT_ROOT, collection, slug, "alt.webp");
+            if (await optimizeImage(altEntry.path, out, "alt")) {
+              entry.alternateImage = `/images/products/${collection}/${slug}/alt.webp`;
+            }
           }
-        } else {
-          addWarning(
-            `"${collection}/${category}/${slug}" has no main.* photo; ` +
-              "skipping (a hero photo is required to add the piece)."
-          );
-          continue;
-        }
 
-        if (altFile) {
-          const out = join(PRODUCTS_OUT_ROOT, collection, slug, "alt.webp");
-          if (await optimizeImage(join(dir, altFile), out, "alt")) {
-            entry.alternateImage = `/images/products/${collection}/${slug}/alt.webp`;
+          // DETAIL GALLERY: when a piece ships more than one photo, optimize
+          // EVERY photo KEEPING its original background (the detail page is not
+          // matted) into detail/NN.webp. Order = hero first, then the rest
+          // alphabetically. A single-photo piece keeps its current behavior
+          // (no gallery -> detailImages stays []).
+          if (photoEntries.length > 1) {
+            const rest = photoEntries
+              .filter((e) => e !== heroEntry)
+              .sort((a, b) => a.name.localeCompare(b.name));
+            const ordered = [heroEntry, ...rest];
+            const detailUrls = [];
+            for (let i = 0; i < ordered.length; i++) {
+              const nn = String(i + 1).padStart(2, "0");
+              const out = join(
+                PRODUCTS_OUT_ROOT,
+                collection,
+                slug,
+                "detail",
+                `${nn}.webp`
+              );
+              if (
+                await optimizeImage(ordered[i].path, out, `detail ${nn}`, {
+                  keepBg: true,
+                })
+              ) {
+                detailUrls.push(
+                  `/images/products/${collection}/${slug}/detail/${nn}.webp`
+                );
+              }
+            }
+            entry.detailImages = detailUrls;
           }
-        }
 
-        if (spinFile) {
-          if (buildSpin(join(dir, spinFile), slug)) {
-            entry.spinMedia = `/images/spin/${slug}`;
+          if (spinEntry) {
+            if (buildSpin(spinEntry.path, slug)) {
+              entry.spinMedia = `/images/spin/${slug}`;
+            }
           }
-        }
 
-        // hoverType precedence: spin > alt > staticOnly.
-        if (entry.spinMedia) entry.hoverType = "spin360";
-        else if (entry.alternateImage) entry.hoverType = "alternateAngle";
-        else entry.hoverType = "staticOnly";
+          // EXTRA videos: a piece may ship more than one clip (e.g. a clean
+          // turntable for the spin + a second angle). The first/explicit clip
+          // drives the 360 spin above; any remaining clips are NOT dropped —
+          // they are optimized into .../<slug>/video/NN.mp4 and surfaced as
+          // inline players on the detail page (`detailVideos`).
+          const extraVideos = spinEntry
+            ? videoEntries.filter((e) => e !== spinEntry)
+            : [];
+          if (extraVideos.length) {
+            const videoUrls = [];
+            for (let i = 0; i < extraVideos.length; i++) {
+              const nn = String(i + 1).padStart(2, "0");
+              const out = join(
+                PRODUCTS_OUT_ROOT,
+                collection,
+                slug,
+                "video",
+                `${nn}.mp4`
+              );
+              if (await optimizeVideo(extraVideos[i].path, out, `video ${nn}`)) {
+                videoUrls.push(
+                  `/images/products/${collection}/${slug}/video/${nn}.mp4`
+                );
+              }
+            }
+            entry.detailVideos = videoUrls;
+          }
 
-        if (DRY_RUN) {
-          const isNew = !(key in generated);
-          log(
-            `  would ${isNew ? "ADD" : "update"} ${key} -> ${JSON.stringify(
-              entry
-            )}`
-          );
-        } else {
-          generated[key] = entry;
+          // hoverType precedence: spin > alt > staticOnly.
+          if (entry.spinMedia) entry.hoverType = "spin360";
+          else if (entry.alternateImage) entry.hoverType = "alternateAngle";
+          else entry.hoverType = "staticOnly";
+
+          if (DRY_RUN) {
+            const isNew = !(key in generated);
+            log(
+              `  would ${isNew ? "ADD" : "update"} ${key} -> ${JSON.stringify(
+                entry
+              )}`
+            );
+          } else {
+            generated[key] = entry;
+          }
+          summary.productsUpdated++;
+        } finally {
+          if (workDir) rmSync(workDir, { recursive: true, force: true });
         }
-        summary.productsUpdated++;
       }
     }
   }

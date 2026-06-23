@@ -51,6 +51,21 @@ export type Product = {
   isSold: boolean;
   /** Static image always shown by default. */
   defaultImage: string;
+  /**
+   * Ordered list of detail-page photo URLs (the full product gallery). These
+   * KEEP their original background (unlike the matted `defaultImage`/spin) and
+   * are rendered as a gallery on the product detail page. Empty by default;
+   * populated by the asset importer for zip/gallery pieces.
+   */
+  detailImages: string[];
+  /**
+   * Ordered list of EXTRA detail-page video URLs (web mp4). The piece's primary
+   * 360 turntable becomes the `spinMedia` spin; any additional clips that ship
+   * with the piece are surfaced here and rendered as inline muted players on the
+   * detail page so nothing from the drop is dropped. Empty by default; populated
+   * by the asset importer for zip pieces with more than one video.
+   */
+  detailVideos: string[];
   hoverType: HoverType;
   /** Second angle for `alternateAngle` crossfade. null otherwise. */
   alternateImage: string | null;
@@ -96,6 +111,8 @@ type GeneratedPiece = {
   defaultImage?: string;
   alternateImage?: string | null;
   spinMedia?: string | null;
+  detailImages?: string[];
+  detailVideos?: string[];
   hoverType?: HoverType;
   price?: number;
   isSold?: boolean;
@@ -121,15 +138,23 @@ const baseCollections: Collection[] = [
     slug: "darling-babies",
     title: "Darling Babies",
     tagline: "Everyday pieces for the table — thrown, trimmed, and glazed by hand.",
+    // Real imported pieces only — every entry's assets (defaultImage /
+    // spinMedia / detailImages / detailVideos / hoverType / category) are
+    // supplied by the generated layer (`product-assets.generated.json`) via
+    // `buildCollections`. Prices stay 0 placeholders until edited. Order is
+    // authored here: raku-white-bowl leads, then the other objects, then the
+    // mug, then the cup.
     products: [
       {
-        id: "tableware-01",
-        slug: "dinner-plate",
-        title: "Dinner Plate",
-        category: "plates",
-        price: 68,
+        id: "raku-white-bowl",
+        slug: "raku-white-bowl",
+        title: "Raku White Bowl",
+        category: "objects",
+        price: 0,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -137,13 +162,15 @@ const baseCollections: Collection[] = [
         shopifyVariantId: null,
       },
       {
-        id: "tableware-02",
-        slug: "side-plate",
-        title: "Side Plate",
-        category: "plates",
-        price: 48,
+        id: "apple-melted",
+        slug: "apple-melted",
+        title: "Apple Melted",
+        category: "objects",
+        price: 0,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -151,13 +178,15 @@ const baseCollections: Collection[] = [
         shopifyVariantId: null,
       },
       {
-        id: "tableware-03",
-        slug: "cereal-bowl",
-        title: "Cereal Bowl",
-        category: "bowls",
-        price: 52,
+        id: "apple-peeled",
+        slug: "apple-peeled",
+        title: "Apple Peeled",
+        category: "objects",
+        price: 0,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -165,14 +194,15 @@ const baseCollections: Collection[] = [
         shopifyVariantId: null,
       },
       {
-        id: "tableware-04",
-        slug: "soup-bowl",
-        title: "Soup Bowl",
-        category: "bowls",
-        price: 56,
-        // sold demo: shows the "sold" pill + grayscale, stays clickable.
-        isSold: true,
+        id: "apple-with-a-hole",
+        slug: "apple-with-a-hole",
+        title: "Apple With A Hole",
+        category: "objects",
+        price: 0,
+        isSold: false,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -180,13 +210,47 @@ const baseCollections: Collection[] = [
         shopifyVariantId: null,
       },
       {
-        id: "tableware-05",
-        slug: "stoneware-mug",
-        title: "Stoneware Mug",
+        id: "blue-vase",
+        slug: "blue-vase",
+        title: "Blue Vase",
+        category: "objects",
+        price: 0,
+        isSold: false,
+        defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
+        hoverType: "spin360",
+        alternateImage: null,
+        spinMedia: "/images/spin/cup-a",
+        shopifyProductId: null,
+        shopifyVariantId: null,
+      },
+      {
+        id: "raku-blue-holder",
+        slug: "raku-blue-holder",
+        title: "Raku Blue Holder",
+        category: "objects",
+        price: 0,
+        isSold: false,
+        defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
+        hoverType: "spin360",
+        alternateImage: null,
+        spinMedia: "/images/spin/cup-a",
+        shopifyProductId: null,
+        shopifyVariantId: null,
+      },
+      {
+        id: "mug-with-half-heart-handle",
+        slug: "mug-with-half-heart-handle",
+        title: "Mug With Half Heart Handle",
         category: "mugs",
-        price: 42,
+        price: 0,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -194,13 +258,15 @@ const baseCollections: Collection[] = [
         shopifyVariantId: null,
       },
       {
-        id: "tableware-06",
-        slug: "espresso-cup",
-        title: "Espresso Cup",
+        id: "green-celadon-tasting-cup",
+        slug: "green-celadon-tasting-cup",
+        title: "Green Celadon Tasting Cup",
         category: "cups",
-        price: 38,
+        price: 0,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -222,6 +288,8 @@ const baseCollections: Collection[] = [
         price: 64,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -236,6 +304,8 @@ const baseCollections: Collection[] = [
         price: 88,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -250,6 +320,8 @@ const baseCollections: Collection[] = [
         price: 220,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -264,6 +336,8 @@ const baseCollections: Collection[] = [
         price: 96,
         isSold: true,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -278,6 +352,8 @@ const baseCollections: Collection[] = [
         price: 74,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -292,6 +368,8 @@ const baseCollections: Collection[] = [
         price: 58,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
+        detailImages: [],
+        detailVideos: [],
         hoverType: "spin360",
         alternateImage: null,
         spinMedia: "/images/spin/cup-a",
@@ -340,6 +418,10 @@ function buildCollections(
             : product.alternateImage,
         spinMedia:
           g.spinMedia !== undefined ? g.spinMedia : product.spinMedia,
+        detailImages:
+          g.detailImages !== undefined ? g.detailImages : product.detailImages,
+        detailVideos:
+          g.detailVideos !== undefined ? g.detailVideos : product.detailVideos,
         hoverType: g.hoverType ?? product.hoverType,
       };
     }),
@@ -362,6 +444,8 @@ function buildCollections(
       price: g.price ?? 0,
       isSold: g.isSold ?? false,
       defaultImage: g.defaultImage ?? PLACEHOLDER_IMAGE,
+      detailImages: g.detailImages ?? [],
+      detailVideos: g.detailVideos ?? [],
       hoverType: g.hoverType ?? "staticOnly",
       alternateImage: g.alternateImage ?? null,
       spinMedia: g.spinMedia ?? null,

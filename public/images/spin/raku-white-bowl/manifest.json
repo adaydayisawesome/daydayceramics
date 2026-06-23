@@ -1,0 +1,15 @@
+{
+  "name": "raku-white-bowl",
+  "source": "video_20260618201218.mp4",
+  "createdAt": "2026-06-23T02:42:17.352Z",
+  "frameCount": 24,
+  "frameWidth": 734,
+  "frameHeight": 480,
+  "cols": 5,
+  "rows": 5,
+  "sprite": "sprite.webp",
+  "sequence": "frames/frame_%03d.webp",
+  "turns": 1,
+  "settleFrame": 0,
+  "spritePrint": "sprite-print.webp"
+}

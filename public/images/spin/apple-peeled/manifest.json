@@ -1,0 +1,15 @@
+{
+  "name": "apple-peeled",
+  "source": "video_20260618201851.mp4",
+  "createdAt": "2026-06-23T03:26:08.427Z",
+  "frameCount": 24,
+  "frameWidth": 621,
+  "frameHeight": 480,
+  "cols": 5,
+  "rows": 5,
+  "sprite": "sprite.webp",
+  "sequence": "frames/frame_%03d.webp",
+  "turns": 1,
+  "settleFrame": 0,
+  "spritePrint": "sprite-print.webp"
+}

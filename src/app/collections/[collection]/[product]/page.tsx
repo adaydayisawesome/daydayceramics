@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { collections, getProduct, priceLabel } from "@/lib/products";
+import { DetailMedia } from "@/components/collections/detail-media";
 
 export function generateStaticParams() {
   return collections.flatMap((c) =>
@@ -48,17 +49,29 @@ export default async function ProductPage({
         </Link>
       </header>
 
-      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-10 px-6 py-6 md:flex-row md:items-center md:gap-16">
-        <div className="relative aspect-square w-full max-w-md">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={item.defaultImage}
-            alt={item.title}
-            className={`h-full w-full object-contain p-[8%] ${item.isSold ? "grayscale" : ""}`}
+      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-10 px-6 py-6 md:flex-row md:items-start md:gap-16">
+        {item.detailImages.length > 0 || item.detailVideos.length > 0 ? (
+          <DetailMedia
+            title={item.title}
+            defaultImage={item.defaultImage}
+            detailImages={item.detailImages}
+            detailVideos={item.detailVideos}
+            spinMedia={item.spinMedia}
+            hoverType={item.hoverType}
+            isSold={item.isSold}
           />
-        </div>
+        ) : (
+          <div className="relative aspect-square w-full max-w-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={item.defaultImage}
+              alt={item.title}
+              className={`h-full w-full object-contain p-[8%] ${item.isSold ? "grayscale" : ""}`}
+            />
+          </div>
+        )}
 
-        <div className="flex flex-col items-start text-left md:flex-1">
+        <div className="flex flex-col items-start text-left md:flex-1 md:pt-6">
           <p className="text-sm tracking-[0.02em] text-neutral-500">
             {col.title}
           </p>
