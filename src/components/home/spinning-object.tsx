@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { SLIDE_MS } from "./constants";
+import { spriteCellStyle, useManifest } from "./sprite-cell";
 
 /**
  * Frame-player for the home-page "360 spinner".
@@ -16,61 +17,10 @@ import { SLIDE_MS } from "./constants";
  * If no `name` is given, or the manifest fails to load, it renders the plain
  * static `<img src={fallbackSrc}>` — i.e. exactly the previous behavior. This
  * keeps the live site working even when no spin asset is present.
+ *
+ * Manifest loading and the sprite-position math live in `./sprite-cell`, shared
+ * with the V2 home grid's `AutoSpinCell`.
  */
-
-type Manifest = {
-  name: string;
-  frameCount: number;
-  frameWidth: number;
-  frameHeight: number;
-  cols: number;
-  rows: number;
-  sprite: string;
-  /** Optional baked grainy B&W halftone "print" sprite (home page). */
-  spritePrint?: string;
-  settleFrame?: number;
-};
-
-// Module-level caches so the 2nd+ reveal is perfectly in sync with the slide
-// (no manifest/sprite fetch latency). Shared across letters that use the same
-// asset name.
-const manifestCache = new Map<string, Manifest>();
-const manifestPromises = new Map<string, Promise<Manifest | null>>();
-
-function spinDir(name: string) {
-  return `/images/spin/${name}`;
-}
-
-function loadManifest(name: string): Promise<Manifest | null> {
-  if (manifestCache.has(name)) {
-    return Promise.resolve(manifestCache.get(name)!);
-  }
-  if (manifestPromises.has(name)) return manifestPromises.get(name)!;
-
-  const p = fetch(`${spinDir(name)}/manifest.json`, { cache: "force-cache" })
-    .then((res) => {
-      if (!res.ok) throw new Error(`manifest ${res.status}`);
-      return res.json() as Promise<Manifest>;
-    })
-    .then((m) => {
-      manifestCache.set(name, m);
-      // Warm the sprite(s) in the browser cache so the first frame is instant.
-      // Warm the baked print variant too when present (the home page uses it).
-      if (typeof window !== "undefined") {
-        const img = new window.Image();
-        img.src = `${spinDir(name)}/${m.sprite}`;
-        if (m.spritePrint) {
-          const imgPrint = new window.Image();
-          imgPrint.src = `${spinDir(name)}/${m.spritePrint}`;
-        }
-      }
-      return m;
-    })
-    .catch(() => null);
-
-  manifestPromises.set(name, p);
-  return p;
-}
 
 // ease-in-out (sine) — visually matches the CSS `ease-in-out` slide closely.
 function easeInOut(t: number) {
@@ -123,27 +73,12 @@ export function SpinningObject({
   // CSS B&W filter — used for the static fallback image and as the safe B&W
   // path whenever the baked print sprite isn't available.
   const grayscaleFilter = grayscale || print ? "grayscale(1)" : undefined;
-  const [manifest, setManifest] = useState<Manifest | null>(() =>
-    name ? (manifestCache.get(name) ?? null) : null
-  );
-  const [failed, setFailed] = useState(false);
+  // Cached manifest resolution (sync cache hit avoids a first-reveal flash).
+  const manifestState = useManifest(name);
+  const failed = manifestState === "failed";
+  const manifest = failed ? null : manifestState;
   const [frame, setFrame] = useState(0);
   const rafRef = useRef<number | null>(null);
-
-  // Resolve the manifest (cached after first load). The setState calls happen
-  // inside an async `.then`, never synchronously in the effect body.
-  useEffect(() => {
-    if (!name || manifest) return;
-    let alive = true;
-    loadManifest(name).then((m) => {
-      if (!alive) return;
-      if (m) setManifest(m);
-      else setFailed(true);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [name, manifest]);
 
   const n = manifest?.frameCount ?? 1;
   const settle = settleFrame ?? manifest?.settleFrame ?? 0;
@@ -202,19 +137,6 @@ export function SpinningObject({
     );
   }
 
-  const { cols, rows, frameWidth, frameHeight, sprite, spritePrint } = manifest;
-  // Prefer the baked halftone print sprite when requested and available. The
-  // B&W is baked into those pixels, so drop the CSS grayscale filter. Otherwise
-  // fall back to the color sprite + (optional) CSS grayscale, so the home page
-  // never shows color even if the print sprite is missing.
-  const usePrint = print && Boolean(spritePrint);
-  const activeSprite = usePrint ? spritePrint! : sprite;
-  const spriteFilter = usePrint ? undefined : grayscaleFilter;
-  const col = displayFrame % cols;
-  const row = Math.floor(displayFrame / cols);
-  const posX = cols > 1 ? (col / (cols - 1)) * 100 : 0;
-  const posY = rows > 1 ? (row / (rows - 1)) * 100 : 0;
-
   return (
     <div
       aria-hidden
@@ -224,12 +146,13 @@ export function SpinningObject({
         // follows the frame aspect ratio.
         height: "100%",
         width: "auto",
-        aspectRatio: `${frameWidth} / ${frameHeight}`,
-        backgroundImage: `url(${spinDir(name)}/${activeSprite})`,
-        backgroundRepeat: "no-repeat",
-        backgroundSize: `${cols * 100}% ${rows * 100}%`,
-        backgroundPosition: `${posX}% ${posY}%`,
-        filter: spriteFilter,
+        ...spriteCellStyle({
+          manifest,
+          name: name!,
+          frame: displayFrame,
+          print,
+          grayscale,
+        }),
       }}
     />
   );

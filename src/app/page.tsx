@@ -1,5 +1,5 @@
-import { DayLetters } from "@/components/home/day-letters";
+import { HomeVersions } from "@/components/home/home-versions";
 
 export default function Home() {
-  return <DayLetters />;
+  return <HomeVersions />;
 }
