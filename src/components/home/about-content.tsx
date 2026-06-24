@@ -78,22 +78,24 @@ export function AboutContent({ showHands = true }: { showHands?: boolean }) {
         <div className="w-full max-w-[760px]">
           {/* Bio. */}
           <p className={bodyClass}>
-            Hi, I&apos;m <strong className="font-bold">Huilin</strong>, a
-            designer and ceramic artist exploring pottery through use, touch, and
-            everyday ritual.
+            Hi, I&apos;m <strong className="font-bold">Huilin</strong> — a
+            designer, ceramic artist, and the questionable founder of a tiny
+            adoption agency for handmade ceramic babies.
           </p>
           <p className={`${bodyClass} mt-4`}>
-            My work often begins with objects meant to be held—things that live
-            close to the body. Coming from a design background, I care deeply
-            about function, proportion, and the experience of use; but I am also
-            drawn to clay&apos;s wonky, accidental, and emotionally specific
-            nature.
+            I make cups, bowls, vases, and strange little objects that live
+            somewhere between function and feeling. Coming from a design
+            background, I care about use, proportion, and the experience of
+            holding an object — but clay keeps reminding me that not everything
+            needs to behave like a perfect product.
           </p>
           <p className={`${bodyClass} mt-4`}>
-            Once in a while, I also make non-functional pieces as a way to play,
-            wander, and let ideas loosen up. For me, clay is both a material for
-            making useful objects and a place for curiosity, failure, and small
-            discoveries.
+            Calling this an adoption agency is my way of slowing down the act of
+            buying. Each baby has its own posture, flaws, texture, weight, and
+            personality. Some are polished and well-behaved; some are odd,
+            experimental, or clearly carrying a little kiln drama. A few are
+            functional, a few are functional-ish, and some simply exist to
+            quietly improve the mood of a room.
           </p>
 
           <div className="mt-8 flex items-center gap-4">
