@@ -139,10 +139,11 @@ function CellLabel({
   }
 
   if (isAdopt) {
+    // ALWAYS visible (mobile + desktop) — a clean, centered single-word pill.
     return (
-      <span className="pointer-events-none absolute bottom-0 left-1/2 z-10 flex h-12 -translate-x-1/2 items-center justify-center opacity-100 transition-opacity duration-300 ease-out md:bottom-3 md:h-11 md:opacity-0 md:group-hover:opacity-100">
-        <span className="inline-flex h-7 items-center rounded-full border border-[#413E3F] bg-transparent px-3 font-[family-name:var(--font-figtree)] text-[11px] font-semibold tracking-wide text-[#413E3F] transition-colors group-hover:bg-[#03F94D]">
-          Adopt this baby
+      <span className="pointer-events-none absolute bottom-0 left-1/2 z-10 flex h-12 -translate-x-1/2 items-center justify-center md:bottom-3 md:h-11">
+        <span className="inline-flex h-7 items-center justify-center rounded-full border border-[#413E3F] bg-transparent px-4 font-[family-name:var(--font-figtree)] text-[12px] leading-none font-semibold tracking-wide whitespace-nowrap text-[#413E3F] transition-colors group-hover:bg-[#03F94D]">
+          Adopt
         </span>
       </span>
     );

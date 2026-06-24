@@ -25,7 +25,7 @@ export function HomeShop() {
     "group flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-transparent transition-colors hover:bg-[#03F94D]";
 
   return (
-    <main className="flex min-h-[100svh] flex-col bg-[#FAF5ED] font-[family-name:var(--font-figtree)] text-neutral-900">
+    <main className="flex flex-col bg-[#FAF5ED] font-[family-name:var(--font-figtree)] text-neutral-900">
       <header className="sticky top-0 z-20 flex items-center justify-between bg-[#FAF5ED] p-6">
         {/* LEFT — smiley enters the DAY experience. */}
         <Link href="/day" aria-label="Enter the DAY experience" className={circleButton}>

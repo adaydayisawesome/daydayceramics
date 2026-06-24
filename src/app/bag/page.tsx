@@ -38,10 +38,10 @@ export default function BagPage() {
 
       {/* EMPTY STATE — centered, big, responsive line in the About column width. */}
       <div className="flex min-h-[100svh] items-center justify-center px-6">
-        <p className="w-full max-w-[760px] text-[clamp(36px,7vw,72px)] leading-[1.05] font-bold text-[#413E3F]">
+        <p className="w-full max-w-[760px] text-[clamp(36px,7vw,72px)] leading-[1.05] font-normal text-[#413E3F]">
           You came all this way and picked nothing.
           <br />
-          Damn.
+          <strong className="font-bold">Damn.</strong>
         </p>
       </div>
     </main>

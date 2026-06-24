@@ -31,7 +31,7 @@ export default async function CollectionGridPage({
   const other = collections.find((c) => c.slug !== data.slug);
 
   return (
-    <main className="flex min-h-[100svh] flex-col bg-[#FAF5ED] font-[family-name:var(--font-figtree)] text-neutral-900">
+    <main className="flex flex-col bg-[#FAF5ED] font-[family-name:var(--font-figtree)] text-neutral-900">
       {/* Quiet header — circular icon buttons mirror the home "About" close
           button (40x40, 24px from the edge). No center title. Sticky so the
           back / smiley nav stays reachable on long, scrolling grids; its 88px

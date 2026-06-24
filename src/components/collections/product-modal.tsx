@@ -68,12 +68,13 @@ export function ProductModal({
         onClick={(e) => e.stopPropagation()}
         className="relative z-10 flex max-h-[92svh] w-full max-w-3xl flex-col overflow-hidden rounded-[20px] bg-[#FAF5ED] text-[#413E3F] shadow-2xl"
       >
-        {/* Circular X — mirrors the header close buttons across the site. */}
+        {/* Circular X — TOP-LEFT, matching the site's left-aligned close/X
+            convention (home grid header, /bag, etc.). */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-4 right-4 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-[#FAF5ED]/80 transition-colors hover:bg-[#03F94D]"
+          className="absolute top-4 left-4 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-[#FAF5ED]/80 transition-colors hover:bg-[#03F94D]"
         >
           <X className="size-5 text-[#413E3F]" />
         </button>

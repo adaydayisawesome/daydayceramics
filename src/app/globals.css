@@ -104,14 +104,19 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-family: var(--font-lora), Georgia, "Times New Roman", serif;
     /* Reset the 8px user-agent body margin — left in, it adds a scrollable gap
        above/below <main> (the page's white plane showing past the last row). */
     margin: 0;
-    /* svh (small viewport) floor matches the grid's row math and <main>'s
-       min-height, so a short page fills exactly one screen with no extra. */
-    min-height: 100svh;
+    /* Cream page canvas (matches the grid/collection/bag mains). The body sizes
+       to its CONTENT — no `min-height: 100svh`. On a SHORT page (e.g. the
+       ugly-babies grid with only a couple rows) the document therefore ends
+       exactly at the last product row instead of being padded out to a full
+       viewport (which left a scrollable blank tail on mobile); the cream canvas
+       simply shows beneath when content is shorter than the screen, so the page
+       still reads as full-bleed cream with nothing to scroll into. */
+    background-color: #faf5ed;
     -webkit-font-smoothing: antialiased;
     transition: background-color 700ms ease-in-out;
   }
