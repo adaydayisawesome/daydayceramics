@@ -225,3 +225,29 @@
     animation: none;
   }
 }
+
+/* Gentle twinkle for the decorative green stars scattered around the
+   ugly-babies questionnaire dialog. Scale + opacity only (the star's static
+   rotation/position live on wrapper elements, so this never fights them). */
+@keyframes sparkle-twinkle {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.sparkle-twinkle {
+  animation: sparkle-twinkle 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sparkle-twinkle {
+    animation: none;
+    opacity: 0.8;
+  }
+}

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
+import { Sparkle } from "@/components/icons/sparkle";
 import { AboutContent } from "./about-content";
 import { CREAM, D_SPIN_ASSET, INK, SPIN_ASSET } from "./constants";
 import { DayPageHeader } from "./day-page-header";
@@ -32,24 +33,6 @@ function clamp(v: number, lo: number, hi: number) {
 }
 
 const MARKER_GREEN = "#03F94D";
-
-/** A hand-drawn-ish 4-point sparkle (filled, no stroke). */
-function Sparkle({ size, color }: { size: number; color: string }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 100 100"
-      fill="none"
-      aria-hidden
-    >
-      <path
-        d="M50 1 C54 37 56 44 99 50 C56 56 54 63 50 99 C46 63 44 56 1 50 C44 44 46 37 50 1 Z"
-        fill={color}
-      />
-    </svg>
-  );
-}
 
 // A few sparkles that come OUT of the kiln (screen center) as you scroll and
 // ease out to scattered resting spots along the sides of the two hands, where
