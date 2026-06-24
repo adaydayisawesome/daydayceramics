@@ -16,11 +16,15 @@ const INK = "#413E3F";
 const BODY_CLASS =
   "font-[family-name:var(--font-figtree)] text-[18px] leading-[1.4] font-normal";
 
-// Primary-action pill — same visual language as the VIEW GALLERY / Adopt pills
-// (rounded-full, ink border, Figtree, ink text, neon-green hover), sized up a
-// touch since these are the dialog's main actions.
-const PILL_CLASS =
-  "inline-flex h-11 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-transparent px-6 font-[family-name:var(--font-figtree)] text-[15px] font-semibold tracking-wide text-[#413E3F] whitespace-nowrap transition-colors hover:bg-[#03F94D]";
+// Primary-action pills — same visual language as the VIEW GALLERY / Adopt pills
+// (rounded-full, ink border, Figtree, ink text), sized up a touch since these
+// are the dialog's main actions.
+const PILL_BASE =
+  "inline-flex h-11 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] px-6 font-[family-name:var(--font-figtree)] text-[15px] font-semibold tracking-wide text-[#413E3F] whitespace-nowrap transition-colors";
+// Primary (left): filled neon-green by default, a touch darker on hover.
+const PILL_FILLED = `${PILL_BASE} bg-[#03F94D] hover:bg-[#02D944]`;
+// Secondary (right): outline, fills green on hover.
+const PILL_OUTLINE = `${PILL_BASE} bg-transparent hover:bg-[#03F94D]`;
 
 /**
  * An ugly-babies gate question. The modal walks through `UGLY_QUESTIONS` in
@@ -50,9 +54,10 @@ const UGLY_QUESTIONS: {
   },
 ];
 
-// Decorative star scatter for the questionnaire step. Positions hug the panel
-// edges/corners so they frame (never obscure) the centered copy. Clipped by the
-// panel's `overflow-hidden`, so they never add scrollbars or shift layout.
+// Decorative star scatter shown on EVERY modal view (question + detail).
+// Positions hug the panel edges/corners so they frame (never obscure) the
+// content. Rendered behind the content (z-0) and clipped by the panel's
+// `overflow-hidden`, so they never add scrollbars or shift layout.
 const STAR_SCATTER: {
   style: React.CSSProperties;
   size: number;
@@ -108,9 +113,11 @@ function StarScatter() {
  * is empty) the detail view renders. Adding a question later is just a matter
  * of appending to `UGLY_QUESTIONS`.
  *
- * Closes on the X button (any step), a backdrop click, or Escape. Body scroll
- * is locked while open. Visual language matches the site: cream `#FAF5ED`, ink
- * `#413E3F`, a circular top-left `X`, and neon-green accents.
+ * Closes on a backdrop click or Escape at any step; the top-left circular `X`
+ * is shown on the DETAIL view only (on the question step the secondary button
+ * is the single intentional exit). Body scroll is locked while open. Visual
+ * language matches the site: cream `#FAF5ED`, ink `#413E3F`, neon-green accents,
+ * and a scattered green sparkle layer behind every view.
  */
 export function ProductModal({
   product,
@@ -167,29 +174,36 @@ export function ProductModal({
         className="absolute inset-0 bg-[#413E3F]/45 backdrop-blur-[2px]"
       />
 
-      {/* Panel — cream plane. Clicks inside don't bubble to the backdrop. */}
+      {/* Panel — cream plane. Clicks inside don't bubble to the backdrop.
+          The QUESTION step hugs its content (compact, ~text width + padding);
+          the DETAIL step keeps the roomy panel the gallery/spin needs. */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative z-10 flex max-h-[92svh] w-full max-w-3xl flex-col overflow-hidden rounded-[20px] bg-[#FAF5ED] text-[#413E3F] shadow-2xl"
+        className={`relative z-10 flex max-h-[92svh] w-full flex-col overflow-hidden rounded-[20px] bg-[#FAF5ED] text-[#413E3F] shadow-2xl ${
+          showQuestion ? "max-w-[600px]" : "max-w-3xl"
+        }`}
       >
-        {/* Circular X — TOP-LEFT, matching the site's left-aligned close/X
-            convention (home grid header, /bag, etc.). Closes at ANY step. */}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute top-4 left-4 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-[#FAF5ED]/80 transition-colors hover:bg-[#03F94D]"
-        >
-          <X className="size-5 text-[#413E3F]" />
-        </button>
+        {/* Decorative scattered green stars — behind the content on every view. */}
+        <StarScatter />
+
+        {/* Circular X — TOP-LEFT. Only on the DETAIL view: on the question step
+            "I'm not emotionally ready" is the single, intentional exit (Esc and
+            backdrop still close everywhere). */}
+        {!showQuestion && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute top-4 left-4 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-[#FAF5ED]/80 transition-colors hover:bg-[#03F94D]"
+          >
+            <X className="size-5 text-[#413E3F]" />
+          </button>
+        )}
 
         {showQuestion ? (
-          /* STEP: ugly-babies gate question. */
-          <div className="relative flex min-h-[68svh] flex-col items-center justify-center overflow-y-auto px-6 py-16 text-center sm:px-10">
-            {/* Decorative scattered green stars (questionnaire step only). */}
-            <StarScatter />
-
-            <div className="relative z-10 flex w-full max-w-[520px] flex-col items-center">
+          /* STEP: ugly-babies gate question — content-sized, centered. */
+          <div className="relative z-10 flex flex-col items-center overflow-y-auto px-6 py-14 text-center sm:px-10">
+            <div className="flex w-full max-w-[520px] flex-col items-center">
               <p className={BODY_CLASS} style={{ color: INK }}>
                 {question.body}
               </p>
@@ -198,14 +212,14 @@ export function ProductModal({
                 <button
                   type="button"
                   onClick={() => setStep((s) => s + 1)}
-                  className={`${PILL_CLASS} w-full sm:w-auto`}
+                  className={`${PILL_FILLED} w-full sm:w-auto`}
                 >
                   {question.advanceLabel}
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  className={`${PILL_CLASS} w-full sm:w-auto`}
+                  className={`${PILL_OUTLINE} w-full sm:w-auto`}
                 >
                   {question.closeLabel}
                 </button>
@@ -214,7 +228,7 @@ export function ProductModal({
           </div>
         ) : (
           /* FINAL STEP: the existing piece detail view. */
-          <div className="overflow-y-auto p-6 md:p-10">
+          <div className="relative z-10 overflow-y-auto p-6 md:p-10">
             <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:gap-12">
               <DetailMedia
                 title={product.title}
