@@ -198,18 +198,15 @@ export function AboutContent({ showHands = true }: { showHands?: boolean }) {
               >
                 <p>Local pickup is free of charge.</p>
                 <p className="mt-4">
-                  Local delivery may be available within San Mateo County, the
-                  Peninsula, and parts of the South Bay. Nearby delivery is free.
+                  Local delivery may be available within San Francisco, San Mateo
+                  County, Palo Alto, and Santa Clara County. Nearby delivery is
+                  free.
                 </p>
                 <p className="mt-4">
-                  If you are a little farther out but still within a reasonable
-                  drive, I may ask for a $5 fuel fee.
-                </p>
-                <p className="mt-4">
-                  If you are very far away, across the bay in a way that turns
-                  this into a whole side quest, or beyond roughly 50 miles,
-                  shipping will be required instead. The southernmost delivery
-                  area is San Jose.
+                  Bridge tolls apply when delivery requires crossing a bridge.
+                  The farthest bridge-accessible areas I can consider are Marin
+                  County and Alameda County; beyond that, shipping will be
+                  required.
                 </p>
                 <p className="mt-4">
                   Please contact me before purchase if you would like local
