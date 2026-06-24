@@ -251,3 +251,13 @@
     opacity: 0.8;
   }
 }
+
+/* Hide the scrollbar on the photo carousel track (mobile swipe / desktop
+   arrow-driven scroll) while keeping it scrollable. */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
