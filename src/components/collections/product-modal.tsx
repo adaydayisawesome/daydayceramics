@@ -1,124 +1,176 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { X } from "lucide-react";
 
 import { Sparkle } from "@/components/icons/sparkle";
 import { getAdoptionFlow } from "@/lib/adoptions";
+import { getProductDetails } from "@/lib/product-details";
+import type { ProductDetails } from "@/lib/product-details";
 import type { Product } from "@/lib/products";
 import { getCollection, priceLabel } from "@/lib/products";
-import { DetailMedia } from "./detail-media";
 import { PhotoCarousel } from "./photo-carousel";
 
 const MARKER_GREEN = "#03F94D";
 const INK = "#413E3F";
 
-// Body copy sizing/family lifted verbatim from About (`bodyClass` in
-// `about-content.tsx`) so every question reads at the same scale.
+// Body copy sizing/family lifted from About (`bodyClass`) so questions/blurbs
+// read at the same scale across the site.
 const BODY_CLASS =
-  "font-[family-name:var(--font-figtree)] text-[18px] leading-[1.4] font-normal";
+  "font-[family-name:var(--font-figtree)] text-[18px] leading-[1.4] font-normal text-[#413E3F]";
+// Small uppercase section label (gray, tracked-out).
+const LABEL_CLASS =
+  "font-[family-name:var(--font-figtree)] text-[12px] uppercase tracking-[0.14em] text-neutral-500";
+// Piece title.
+const TITLE_CLASS =
+  "font-[family-name:var(--font-figtree)] text-[20px] leading-tight font-bold text-[#413E3F]";
+// Spec value (clay / temp / measurement / price).
+const VALUE_CLASS =
+  "font-[family-name:var(--font-figtree)] text-[18px] font-bold text-[#413E3F]";
 
-// Primary-action pills — same visual language as the VIEW GALLERY / Adopt pills
-// (rounded-full, ink border, Figtree, ink text), sized up a touch since these
-// are the dialog's main actions.
+// Action pills.
 const PILL_BASE =
   "inline-flex h-11 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] px-6 font-[family-name:var(--font-figtree)] text-[15px] font-semibold tracking-wide text-[#413E3F] whitespace-nowrap transition-colors";
-// Primary (left): filled neon-green by default, a touch darker on hover.
 const PILL_FILLED = `${PILL_BASE} bg-[#03F94D] hover:bg-[#02D944]`;
-// Secondary (right): outline, fills green on hover.
 const PILL_OUTLINE = `${PILL_BASE} bg-transparent hover:bg-[#03F94D]`;
 
-// Shared content wrappers for the content-hugging question / price steps.
-const STEP_WRAP =
-  "relative z-10 flex flex-col items-center overflow-y-auto px-6 py-14 text-center sm:px-10";
-const STEP_INNER = "flex w-full max-w-[520px] flex-col items-center";
-const BTN_ROW =
-  "mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:gap-4";
+// Full-bleed dashed perforation divider between ticket sections.
+const DASH = "border-[#413E3F]/25";
+
+// ---------------------------------------------------------------------------
+// Ticket SHAPE — punched out of the cream card with CSS radial-gradient masks.
+//
+// Three mask layers, composited with `intersect` so the card shows only where
+// ALL layers are opaque (i.e. the UNION of the transparent circles becomes
+// holes):
+//   1. left side notch  — half-circle on the left edge at the first perforation
+//   2. right side notch — half-circle on the right edge, same height
+//   3. scalloped bottom — a full-height tile repeated across X with a small
+//      half-circle at its bottom-center, giving the torn-ticket bottom edge
+//
+// `NOTCH_Y` matches the carousel height (256px) so the side notches land on the
+// first dashed divider. The shape adapts to the card's auto height because the
+// scallop tile is `… 100%` tall and pinned to the bottom.
+// ---------------------------------------------------------------------------
+const CAROUSEL_H = 256; // keep in sync with PhotoCarousel's h-64
+const NOTCH_Y = CAROUSEL_H;
+const NOTCH_R = 14;
+const SCALLOP_R = 9;
+
+const notchLeft = `radial-gradient(circle ${NOTCH_R}px at left ${NOTCH_Y}px, transparent ${NOTCH_R}px, #000 ${NOTCH_R + 1}px)`;
+const notchRight = `radial-gradient(circle ${NOTCH_R}px at right ${NOTCH_Y}px, transparent ${NOTCH_R}px, #000 ${NOTCH_R + 1}px)`;
+const scallop = `radial-gradient(circle ${SCALLOP_R}px at 50% 100%, transparent ${SCALLOP_R}px, #000 ${SCALLOP_R + 1}px)`;
+
+const TICKET_MASK: CSSProperties = {
+  WebkitMaskImage: `${notchLeft}, ${notchRight}, ${scallop}`,
+  maskImage: `${notchLeft}, ${notchRight}, ${scallop}`,
+  WebkitMaskRepeat: "no-repeat, no-repeat, repeat-x",
+  maskRepeat: "no-repeat, no-repeat, repeat-x",
+  WebkitMaskPosition: "left top, right top, left bottom",
+  maskPosition: "left top, right top, left bottom",
+  WebkitMaskSize: `100% 100%, 100% 100%, ${SCALLOP_R * 2}px 100%`,
+  maskSize: `100% 100%, 100% 100%, ${SCALLOP_R * 2}px 100%`,
+  WebkitMaskComposite: "source-in",
+  maskComposite: "intersect",
+};
 
 // Q1 — the SHARED ugly-babies gate question (same for every ugly piece). The
 // per-item Q2/Q3/price copy lives in `src/lib/adoptions.ts`.
 const SHARED_Q1 = {
   body: (
     <>
-      This baby has been labeled Ugly for documented reasons.
-      <br />
-      It may be early, odd, or imperfect — but it survived the kiln, my judgment,
-      and the general cruelty of taste.
-      <br />
-      Would you like to meet it properly?
+      This baby has been labeled Ugly for documented reasons. It may be early,
+      odd, or imperfect — but it survived the kiln, my judgment, and the general
+      cruelty of taste. Would you like to meet it properly?
     </>
   ),
   advanceLabel: "Show me the damage",
   closeLabel: "I'm not emotionally ready",
 };
 
-// Decorative star scatter shown on EVERY modal view. Positions hug the panel
-// edges/corners so they frame (never obscure) the content. Rendered behind the
-// content (z-0) and clipped by the panel's `overflow-hidden`, so they never add
-// scrollbars or shift layout.
-const STAR_SCATTER: {
-  style: React.CSSProperties;
-  size: number;
-  delay: number;
-  rotate: number;
-}[] = [
-  { style: { top: "7%", left: "7%" }, size: 26, delay: 0, rotate: -12 },
-  { style: { top: "5%", left: "34%" }, size: 16, delay: 0.9, rotate: 10 },
-  { style: { top: "9%", right: "9%" }, size: 30, delay: 0.4, rotate: 8 },
-  { style: { top: "26%", right: "21%" }, size: 14, delay: 1.4, rotate: -6 },
-  { style: { top: "42%", left: "4%" }, size: 20, delay: 0.6, rotate: 14 },
-  { style: { top: "46%", right: "5%" }, size: 18, delay: 1.1, rotate: -10 },
-  { style: { bottom: "11%", left: "9%" }, size: 24, delay: 0.2, rotate: 6 },
-  { style: { bottom: "6%", left: "43%" }, size: 16, delay: 1.6, rotate: -14 },
-  { style: { bottom: "12%", right: "10%" }, size: 28, delay: 0.8, rotate: 12 },
-];
-
-function StarScatter() {
+// Two small neon-green sparkles tucked near the bottom corners of the ticket.
+function CornerSparkles() {
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 z-0 select-none"
-    >
-      {STAR_SCATTER.map((s, i) => (
-        <span
-          key={i}
-          className="absolute"
-          style={{ ...s.style, transform: `rotate(${s.rotate}deg)` }}
-        >
-          <span
-            className="sparkle-twinkle block"
-            style={{ animationDelay: `${s.delay}s` }}
-          >
-            <Sparkle size={s.size} color={MARKER_GREEN} />
-          </span>
-        </span>
-      ))}
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-20 select-none">
+      <span className="sparkle-twinkle absolute bottom-7 left-4">
+        <Sparkle size={18} color={MARKER_GREEN} />
+      </span>
+      <span
+        className="sparkle-twinkle absolute right-4 bottom-8"
+        style={{ animationDelay: "0.8s" }}
+      >
+        <Sparkle size={14} color={MARKER_GREEN} />
+      </span>
     </div>
   );
 }
 
 /**
- * Product INTERSTITIAL — the state-driven replacement for the old
- * `/collections/[collection]/[product]` detail route (now removed).
+ * The reusable SPEC rows — the same CLAY | TEMP two-column block (split by a
+ * vertical dashed divider) and MEASUREMENT row used by BOTH the darling card
+ * and the ugly funnel steps. Returns one node per present spec section (each
+ * becomes its own dashed-divided ticket section); an empty array when there's
+ * nothing to show, so missing data renders no row/divider at all.
+ */
+function specNodes(d?: ProductDetails): ReactNode[] {
+  if (!d) return [];
+  const nodes: ReactNode[] = [];
+
+  if (d.clay || d.temp) {
+    nodes.push(
+      <div className="flex">
+        {d.clay && (
+          <div className={`flex-1 ${d.temp ? "pr-5" : ""}`}>
+            <p className={LABEL_CLASS}>CLAY</p>
+            <p className={`${VALUE_CLASS} mt-1`}>{d.clay}</p>
+          </div>
+        )}
+        {d.clay && d.temp && (
+          <div className={`border-l border-dashed ${DASH}`} />
+        )}
+        {d.temp && (
+          <div className={`flex-1 ${d.clay ? "pl-5" : ""}`}>
+            <p className={LABEL_CLASS}>TEMP</p>
+            <p className={`${VALUE_CLASS} mt-1`}>{d.temp}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (d.measurement) {
+    nodes.push(
+      <div>
+        <p className={LABEL_CLASS}>MEASUREMENT</p>
+        <p className={`${VALUE_CLASS} mt-1`}>{d.measurement}</p>
+      </div>
+    );
+  }
+
+  return nodes;
+}
+
+/**
+ * Product INTERSTITIAL — a TICKET / boarding-pass card.
  *
- * Darling-babies pieces open straight to the detail content (matted hero +
- * gallery via `DetailMedia` — note: NO 360 spin in the modal; the spin lives on
- * the listing grid).
+ * The SAME ticket frame serves both product types: a cream card with rounded
+ * top corners, half-circle notches on the left/right edges at the first
+ * perforation, a scalloped (torn) bottom edge, dashed perforation dividers
+ * between sections, and a couple of green corner sparkles. The TOP of every
+ * ticket is the image carousel; below the first dashed divider is the
+ * type-specific content; the bottom holds the action button(s). The card height
+ * HUGS its content (auto) and grows/shrinks per step/product, capped by
+ * `max-h-[92svh]` with internal scroll for very tall tickets.
  *
- * Ugly-babies pieces run an ADOPTION FUNNEL (a STEP SEQUENCE) before the detail:
- *   step 0 → Q1 (shared question)
- *   step 1 → Q2 (per-item, with a photo carousel)
- *   step 2 → Q3 (per-item; both buttons advance)
- *   step 3 → price step (single-select + "Adopt it!")
- *   step ≥ 4 → the piece detail view
- * Per-item copy/prices come from `getAdoptionFlow(product.slug)`; a piece with
- * no flow (every darling piece) shows the detail immediately.
+ *   · Darling babies → a single view: label + title + price + blurb, the
+ *     reusable spec rows (only when data exists), and an "Add to cart" stub.
+ *   · Ugly babies → the adoption FUNNEL (Q1 shared → Q2 → Q3 → price), each step
+ *     rendered in ticket style and able to surface the same spec rows when the
+ *     piece has spec data.
  *
- * Closes on a backdrop click or Escape at any step. The top-left circular `X`
- * is shown only when the CURRENT step has no explicit close/quit pill (i.e. on
- * Q3, the price step, and the detail view) — never two exits at once. Body
- * scroll is locked while open. Visual language: cream `#FAF5ED`, ink `#413E3F`,
- * neon-green accents, and a scattered green sparkle layer behind every view.
+ * The top-left circular X shows only when the current step has no explicit
+ * close/quit pill (so never two exits at once); Esc + backdrop always close.
  */
 export function ProductModal({
   product,
@@ -132,12 +184,14 @@ export function ProductModal({
   const [step, setStep] = useState(0);
   const [priceIdx, setPriceIdx] = useState<number | null>(null);
   const [checkoutNote, setCheckoutNote] = useState(false);
+  const [cartNote, setCartNote] = useState(false);
 
   // Restart the funnel each time a new piece is opened.
   useEffect(() => {
     setStep(0);
     setPriceIdx(null);
     setCheckoutNote(false);
+    setCartNote(false);
   }, [product]);
 
   useEffect(() => {
@@ -157,16 +211,22 @@ export function ProductModal({
   if (!product || !collectionSlug) return null;
 
   const isUgly = collectionSlug === "ugly-babies";
-  const collectionTitle = getCollection(collectionSlug)?.title ?? "";
+  const collectionLabel = (getCollection(collectionSlug)?.title ?? "").toUpperCase();
+  const details = getProductDetails(product.slug);
 
-  // Ugly pieces with a funnel walk Q1→Q2→Q3→price→detail; everything else
-  // (darling, or any ugly piece missing a funnel) opens straight to detail.
+  // De-duplicated photo set for the top carousel.
+  const images = Array.from(
+    new Set([product.defaultImage, ...product.detailImages])
+  );
+
+  // Ugly pieces with a funnel walk Q1→Q2→Q3→price; everything else (darling, or
+  // an ugly piece missing a funnel) shows the single product view.
   const flow = isUgly ? getAdoptionFlow(product.slug) : undefined;
-  const showDetail = !flow || step >= 4;
+  const isFunnel = Boolean(flow);
 
   // Steps 0 (Q1) and 1 (Q2) carry their own "quit" pill, so the X is hidden
-  // there to avoid two exits. Q3 / price / detail have no quit pill → show X.
-  const showQuitPill = Boolean(flow) && (step === 0 || step === 1);
+  // there to avoid two exits. Q3 / price / the darling view have no quit pill.
+  const showQuitPill = isFunnel && (step === 0 || step === 1);
   const showX = !showQuitPill;
 
   const handleAdopt = () => {
@@ -175,6 +235,182 @@ export function ProductModal({
     // now; we just surface a "coming soon" note.
     setCheckoutNote(true);
   };
+
+  const handleAddToCart = () => {
+    // TODO: cart/checkout — add this piece to the cart / start checkout. No-op
+    // for now; we just surface a "coming soon" note.
+    setCartNote(true);
+  };
+
+  const labelTitle = (
+    <div>
+      <p className={LABEL_CLASS}>{collectionLabel}</p>
+      <h2 className={`${TITLE_CLASS} mt-1`}>{product.title}</h2>
+    </div>
+  );
+
+  // Build the lower (below-carousel) ticket sections for the current view. Each
+  // entry becomes its own section, separated by a dashed perforation divider.
+  const sections: ReactNode[] = [];
+
+  if (!isFunnel) {
+    // ---- DARLING: single product view ----
+    sections.push(
+      <div>
+        <p className={LABEL_CLASS}>{collectionLabel}</p>
+        <h2 className={`${TITLE_CLASS} mt-1`}>{product.title}</h2>
+        {product.isSold ? (
+          <p className="mt-2 text-[18px] font-bold text-[#413E3F] line-through decoration-[#03F94D] decoration-[3px]">
+            Sold
+          </p>
+        ) : product.price > 0 ? (
+          <p className={`${VALUE_CLASS} mt-2`}>{priceLabel(product.price)}</p>
+        ) : null}
+        {details?.blurb && <p className={`${BODY_CLASS} mt-3`}>{details.blurb}</p>}
+      </div>
+    );
+    sections.push(...specNodes(details));
+    sections.push(
+      <div>
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          className={`${PILL_FILLED} w-full`}
+        >
+          Add to cart
+        </button>
+        {cartNote && (
+          <p className="mt-3 text-center text-sm text-neutral-500">
+            Cart coming soon.
+          </p>
+        )}
+      </div>
+    );
+  } else if (step === 0) {
+    // ---- UGLY Q1 (shared) ----
+    sections.push(
+      <div>
+        {labelTitle}
+        <p className={`${BODY_CLASS} mt-3`}>{SHARED_Q1.body}</p>
+      </div>
+    );
+    sections.push(
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => setStep(1)}
+          className={`${PILL_FILLED} w-full`}
+        >
+          {SHARED_Q1.advanceLabel}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className={`${PILL_OUTLINE} w-full`}
+        >
+          {SHARED_Q1.closeLabel}
+        </button>
+      </div>
+    );
+  } else if (step === 1) {
+    // ---- UGLY Q2 (per item) ----
+    sections.push(
+      <div>
+        {labelTitle}
+        <p className={`${BODY_CLASS} mt-3`}>{flow!.q2.body}</p>
+      </div>
+    );
+    sections.push(...specNodes(details));
+    sections.push(
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => setStep(2)}
+          className={`${PILL_FILLED} w-full`}
+        >
+          {flow!.q2.advanceLabel}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className={`${PILL_OUTLINE} w-full`}
+        >
+          {flow!.q2.quitLabel}
+        </button>
+      </div>
+    );
+  } else if (step === 2) {
+    // ---- UGLY Q3 (per item) — BOTH buttons advance ----
+    sections.push(
+      <div>
+        {labelTitle}
+        <p className={`${BODY_CLASS} mt-3`}>{flow!.q3.body}</p>
+      </div>
+    );
+    sections.push(...specNodes(details));
+    sections.push(
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => setStep(3)}
+          className={`${PILL_FILLED} w-full`}
+        >
+          {flow!.q3.leftLabel}
+        </button>
+        <button
+          type="button"
+          onClick={() => setStep(3)}
+          className={`${PILL_OUTLINE} w-full`}
+        >
+          {flow!.q3.rightLabel}
+        </button>
+      </div>
+    );
+  } else {
+    // ---- UGLY price step ----
+    sections.push(labelTitle);
+    sections.push(
+      <div>
+        <p className={BODY_CLASS}>Choose your adoption fee:</p>
+        <div className="mt-4 flex flex-col gap-3">
+          {flow!.prices.map((p, i) => {
+            const selected = priceIdx === i;
+            return (
+              <button
+                key={`${p.amount}-${i}`}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setPriceIdx(i)}
+                className={`flex h-12 w-full items-center justify-between gap-3 rounded-full border border-[#413E3F] px-5 font-[family-name:var(--font-figtree)] text-[15px] text-[#413E3F] transition-colors ${
+                  selected ? "bg-[#03F94D]" : "bg-transparent hover:bg-[#03F94D]/30"
+                }`}
+              >
+                <span className="font-semibold">${p.amount}</span>
+                <span className="text-left">{p.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+    sections.push(
+      <div>
+        <button
+          type="button"
+          onClick={handleAdopt}
+          disabled={priceIdx === null}
+          className={`${PILL_FILLED} w-full disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#03F94D]`}
+        >
+          Adopt it!
+        </button>
+        {checkoutNote && (
+          <p className="mt-3 text-center text-sm text-neutral-500">
+            Checkout coming soon.
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -190,209 +426,45 @@ export function ProductModal({
         className="absolute inset-0 bg-[#413E3F]/45 backdrop-blur-[2px]"
       />
 
-      {/* Panel — cream plane. Clicks inside don't bubble to the backdrop.
-          Question/price steps hug their content (compact ~600px); the detail
-          step keeps the roomy panel the gallery needs. */}
+      {/* The TICKET. Height hugs content (auto), capped + scrollable on small
+          screens. The cream plane is punched into a ticket silhouette by
+          `TICKET_MASK` (side notches + scalloped bottom). */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative z-10 flex max-h-[92svh] w-full flex-col overflow-hidden rounded-[20px] bg-[#FAF5ED] text-[#413E3F] shadow-2xl ${
-          showDetail ? "max-w-3xl" : "max-w-[600px]"
-        }`}
+        style={TICKET_MASK}
+        className="relative z-10 flex max-h-[92svh] w-full max-w-[460px] flex-col overflow-y-auto rounded-[20px] bg-[#FAF5ED] text-[#413E3F] shadow-2xl"
       >
-        {/* Decorative scattered green stars — behind the content on every view. */}
-        <StarScatter />
-
-        {/* Circular X — TOP-LEFT. Shown only when the current step has no
-            explicit quit pill (Q3 / price / detail); Esc + backdrop always
-            close. */}
+        {/* Circular X — TOP-LEFT. Shown only when the current step has no quit
+            pill; Esc + backdrop always close. */}
         {showX && (
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="absolute top-4 left-4 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-[#FAF5ED]/80 transition-colors hover:bg-[#03F94D]"
+            className="absolute top-4 left-4 z-30 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-[#FAF5ED]/80 transition-colors hover:bg-[#03F94D]"
           >
             <X className="size-5 text-[#413E3F]" />
           </button>
         )}
 
-        {showDetail ? (
-          /* DETAIL VIEW — static media + gallery (no 360 spin). */
-          <div className="relative z-10 overflow-y-auto p-6 md:p-10">
-            <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:gap-12">
-              <DetailMedia
-                title={product.title}
-                defaultImage={product.defaultImage}
-                detailImages={product.detailImages}
-                detailVideos={product.detailVideos}
-                isSold={product.isSold}
-              />
+        {/* TOP — image carousel (rounded to match the card's top corners). */}
+        <div className="overflow-hidden rounded-t-[20px]">
+          <PhotoCarousel images={images} alt={product.title} />
+        </div>
 
-              <div className="flex w-full flex-col items-start text-left md:flex-1 md:pt-4">
-                <p className="text-sm tracking-[0.02em] text-neutral-500">
-                  {collectionTitle}
-                </p>
-                <h2 className="mt-3 text-[clamp(1.75rem,4vw,2.75rem)] leading-tight font-bold">
-                  {product.title}
-                </h2>
-
-                {/* Price / status — mirrors the grid cell treatment:
-                    · sold pieces: "Sold" with a neon-green strike
-                    · ugly babies: an "Adopt this baby" pill (no price)
-                    · everything else: the price */}
-                <div className="mt-4">
-                  {product.isSold ? (
-                    <span className="text-lg font-semibold text-[#413E3F] line-through decoration-[#03F94D] decoration-[3px]">
-                      Sold
-                    </span>
-                  ) : isUgly ? (
-                    <button
-                      type="button"
-                      className="inline-flex h-9 cursor-pointer items-center rounded-full border border-[#413E3F] bg-transparent px-4 text-[13px] font-semibold tracking-wide text-[#413E3F] transition-colors hover:bg-[#03F94D]"
-                    >
-                      Adopt this baby
-                    </button>
-                  ) : (
-                    <span className="text-lg text-neutral-700">
-                      {priceLabel(product.price)}
-                    </span>
-                  )}
-                </div>
-
-                <p className="mt-8 max-w-sm text-sm leading-relaxed text-neutral-500">
-                  Checkout will connect to Shopify here later.
-                </p>
-              </div>
+        {/* Lower content — sections separated by full-bleed dashed perforations
+            (the first one carries the side notches). */}
+        <div className="pb-8">
+          {sections.map((node, i) => (
+            <div key={i}>
+              <div className={`border-t border-dashed ${DASH}`} />
+              <div className="px-6 py-5">{node}</div>
             </div>
-          </div>
-        ) : step === 0 ? (
-          /* STEP 0 — shared Q1. */
-          <div className={STEP_WRAP}>
-            <div className={STEP_INNER}>
-              <p className={BODY_CLASS} style={{ color: INK }}>
-                {SHARED_Q1.body}
-              </p>
-              <div className={BTN_ROW}>
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className={`${PILL_FILLED} w-full sm:w-auto`}
-                >
-                  {SHARED_Q1.advanceLabel}
-                </button>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className={`${PILL_OUTLINE} w-full sm:w-auto`}
-                >
-                  {SHARED_Q1.closeLabel}
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : step === 1 ? (
-          /* STEP 1 — per-item Q2, with the photo carousel. */
-          <div className={STEP_WRAP}>
-            <div className={STEP_INNER}>
-              <p className={BODY_CLASS} style={{ color: INK }}>
-                {flow!.q2.body}
-              </p>
-              <div className="mt-7 w-full">
-                <PhotoCarousel
-                  images={product.detailImages}
-                  alt={product.title}
-                />
-              </div>
-              <div className={BTN_ROW}>
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className={`${PILL_FILLED} w-full sm:w-auto`}
-                >
-                  {flow!.q2.advanceLabel}
-                </button>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className={`${PILL_OUTLINE} w-full sm:w-auto`}
-                >
-                  {flow!.q2.quitLabel}
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : step === 2 ? (
-          /* STEP 2 — per-item Q3; BOTH buttons advance to the price step. */
-          <div className={STEP_WRAP}>
-            <div className={STEP_INNER}>
-              <p className={BODY_CLASS} style={{ color: INK }}>
-                {flow!.q3.body}
-              </p>
-              <div className={BTN_ROW}>
-                <button
-                  type="button"
-                  onClick={() => setStep(3)}
-                  className={`${PILL_FILLED} w-full sm:w-auto`}
-                >
-                  {flow!.q3.leftLabel}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStep(3)}
-                  className={`${PILL_OUTLINE} w-full sm:w-auto`}
-                >
-                  {flow!.q3.rightLabel}
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* STEP 3 — price step: single-select of 3 options + "Adopt it!". */
-          <div className={STEP_WRAP}>
-            <div className={STEP_INNER}>
-              <p className={BODY_CLASS} style={{ color: INK }}>
-                Choose your adoption fee:
-              </p>
+          ))}
+        </div>
 
-              <div className="mt-7 flex w-full flex-col gap-3">
-                {flow!.prices.map((p, i) => {
-                  const selected = priceIdx === i;
-                  return (
-                    <button
-                      key={`${p.amount}-${i}`}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => setPriceIdx(i)}
-                      className={`flex h-12 w-full items-center justify-between gap-3 rounded-full border border-[#413E3F] px-5 font-[family-name:var(--font-figtree)] text-[15px] text-[#413E3F] transition-colors ${
-                        selected
-                          ? "bg-[#03F94D]"
-                          : "bg-transparent hover:bg-[#03F94D]/30"
-                      }`}
-                    >
-                      <span className="font-semibold">${p.amount}</span>
-                      <span className="text-left">{p.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <button
-                type="button"
-                onClick={handleAdopt}
-                disabled={priceIdx === null}
-                className={`${PILL_FILLED} mt-8 w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#03F94D]`}
-              >
-                Adopt it!
-              </button>
-
-              {checkoutNote && (
-                <p className="mt-4 text-sm text-neutral-500">
-                  Checkout coming soon.
-                </p>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Decorative green sparkles near the bottom corners. */}
+        <CornerSparkles />
       </div>
     </div>
   );
