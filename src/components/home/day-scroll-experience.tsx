@@ -288,35 +288,68 @@ export function DayScrollExperience() {
             })}
           </div>
 
-          {/* DAY — click smooth-scrolls to Y; hover + scroll fill the marker. */}
-          <button
-            type="button"
-            onClick={goToY}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-            aria-label="Read the Day Day Ceramics story"
-            className="group relative z-10 block w-[min(86vw,960px)] cursor-pointer border-0 bg-transparent p-0"
-            style={{ aspectRatio: "1400 / 950" }}
-          >
-            {/* Neon-green marker fill — opacity tracks the fill progress. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={DAY_FILL_MARKER}
-              alt=""
-              aria-hidden
-              draggable={false}
-              className="absolute inset-0 h-full w-full object-contain select-none transition-opacity duration-200 ease-out"
-              style={{ opacity: effectiveFill }}
-            />
-            {/* Dark outline — always on top so the strokes stay crisp. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={DAY_OUTLINE}
-              alt="DAY"
-              draggable={false}
-              className="absolute inset-0 h-full w-full object-contain opacity-100 select-none"
-            />
-          </button>
+          {/* DAY + tagline. Click smooth-scrolls to Y; hover + scroll fill the
+              marker. The tagline matches the DAY's width (inset ~18px each side)
+              and reuses the policy-headline type. */}
+          <div className="relative z-10 flex flex-col items-center">
+            <button
+              type="button"
+              onClick={goToY}
+              onMouseEnter={() => setHovered(true)}
+              onMouseLeave={() => setHovered(false)}
+              aria-label="Read the Day Day Ceramics story"
+              className="group relative block w-[min(86vw,960px)] cursor-pointer border-0 bg-transparent p-0"
+              style={{ aspectRatio: "1400 / 950" }}
+            >
+              {/* Neon-green marker fill — opacity tracks the fill progress. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={DAY_FILL_MARKER}
+                alt=""
+                aria-hidden
+                draggable={false}
+                className="absolute inset-0 h-full w-full object-contain select-none transition-opacity duration-200 ease-out"
+                style={{ opacity: effectiveFill }}
+              />
+              {/* Dark outline — always on top so the strokes stay crisp. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={DAY_OUTLINE}
+                alt="DAY"
+                draggable={false}
+                className="absolute inset-0 h-full w-full object-contain opacity-100 select-none"
+              />
+            </button>
+
+            {/* Tagline — width capped to the DAY, 18px inset each side, with a
+                hand-drawn circle around "adoption agency". */}
+            <p
+              className="mt-2 text-center font-[family-name:var(--font-figtree)] text-[20px] leading-snug font-bold text-[#413E3F]"
+              style={{ width: "min(86vw, 960px)", paddingLeft: 18, paddingRight: 18 }}
+            >
+              A tiny{" "}
+              <span className="relative inline-block">
+                <span className="relative z-10">adoption agency</span>
+                <svg
+                  aria-hidden
+                  viewBox="0 0 300 100"
+                  preserveAspectRatio="none"
+                  className="pointer-events-none absolute top-1/2 left-1/2 h-[165%] w-[116%] -translate-x-1/2 -translate-y-1/2"
+                >
+                  <path
+                    d="M20 54 C 12 24, 74 10, 152 11 C 236 12, 294 28, 286 56 C 280 84, 212 95, 138 93 C 58 91, 8 78, 24 48"
+                    fill="none"
+                    stroke="#413E3F"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
+              </span>{" "}
+              for handmade ceramic babies
+            </p>
+          </div>
 
           {/* Scroll-hint: a down arrow (same size/style as the circular icons)
               with a subtle continuous downward nudge. Fades out as the DAY
