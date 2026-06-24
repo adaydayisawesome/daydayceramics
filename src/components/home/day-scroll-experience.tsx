@@ -324,8 +324,16 @@ export function DayScrollExperience() {
             {/* Tagline — width capped to the DAY, 18px inset each side, with a
                 hand-drawn circle around "adoption agency". */}
             <p
-              className="mt-2 text-center font-[family-name:var(--font-figtree)] text-[20px] leading-snug font-bold text-[#413E3F]"
-              style={{ width: "min(86vw, 960px)", paddingLeft: 18, paddingRight: 18 }}
+              className="text-center font-[family-name:var(--font-figtree)] text-[20px] leading-snug font-bold text-[#413E3F]"
+              style={{
+                width: "min(86vw, 960px)",
+                paddingLeft: 18,
+                paddingRight: 18,
+                // The DAY artwork carries ~17.8% transparent space below the
+                // glyphs (≈0.1207 × box width). Cancel it and leave a real ~30px
+                // gap; scales with the DAY at every breakpoint.
+                marginTop: "calc(30px - 0.1207 * min(86vw, 960px))",
+              }}
             >
               A tiny{" "}
               <span className="relative inline-block">
@@ -339,8 +347,9 @@ export function DayScrollExperience() {
                   <path
                     d="M20 54 C 12 24, 74 10, 152 11 C 236 12, 294 28, 286 56 C 280 84, 212 95, 138 93 C 58 91, 8 78, 24 48"
                     fill="none"
-                    stroke="#413E3F"
-                    strokeWidth={2}
+                    stroke="#03F94D"
+                    strokeOpacity={0.7}
+                    strokeWidth={2.5}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     vectorEffect="non-scaling-stroke"
