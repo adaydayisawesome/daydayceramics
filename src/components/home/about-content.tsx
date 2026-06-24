@@ -154,6 +154,43 @@ export function AboutContent({ showHands = true }: { showHands?: boolean }) {
             </p>
 
             <div className="mt-8">
+              <ShippingCollapsible
+                title="Local Pickup & Delivery"
+                id="local-pickup-delivery"
+              >
+                <p>Local pickup is free of charge.</p>
+                <p className="mt-4">
+                  Local delivery may be available within San Francisco, San Mateo
+                  County, Palo Alto, and Santa Clara County. Nearby delivery is
+                  free.
+                </p>
+                <p className="mt-4">
+                  Bridge tolls apply when delivery requires crossing a bridge.
+                  The farthest bridge-accessible areas I can consider are Marin
+                  County and Alameda County; beyond that, shipping will be
+                  required.
+                </p>
+                <p className="mt-4">
+                  Please contact me before purchase if you would like local
+                  pickup or delivery so I can confirm it works.
+                </p>
+              </ShippingCollapsible>
+
+              <ShippingCollapsible title="Shipping" id="shipping">
+                <p>Shipping fees are non-refundable.</p>
+                <p className="mt-4">
+                  For U.S. shipping, rates are estimated based on the size,
+                  weight, and fragility of each piece. Small pieces usually ship
+                  for around $15, while medium pieces usually ship for around
+                  $25. Large, oversized, or extra-fragile pieces may require a
+                  separate shipping quote.
+                </p>
+                <p className="mt-4">
+                  Each piece will be packed carefully before it goes out into the
+                  world, because apparently ceramics are dramatic.
+                </p>
+              </ShippingCollapsible>
+
               <ShippingCollapsible title="Shipping Damage" id="shipping-damage">
                 <p>
                   I pack each piece with care, but ceramics are fragile and
@@ -174,43 +211,6 @@ export function AboutContent({ showHands = true }: { showHands?: boolean }) {
                   Damage claims must be supported with photos of both the damaged
                   piece and the packaging. This helps me improve future packing
                   and, when applicable, file a claim with the carrier.
-                </p>
-              </ShippingCollapsible>
-
-              <ShippingCollapsible title="Shipping" id="shipping">
-                <p>Shipping fees are non-refundable.</p>
-                <p className="mt-4">
-                  For U.S. shipping, rates are estimated based on the size,
-                  weight, and fragility of each piece. Small pieces usually ship
-                  for around $15, while medium pieces usually ship for around
-                  $25. Large, oversized, or extra-fragile pieces may require a
-                  separate shipping quote.
-                </p>
-                <p className="mt-4">
-                  Each piece will be packed carefully before it goes out into the
-                  world, because apparently ceramics are dramatic.
-                </p>
-              </ShippingCollapsible>
-
-              <ShippingCollapsible
-                title="Local Pickup & Delivery"
-                id="local-pickup-delivery"
-              >
-                <p>Local pickup is free of charge.</p>
-                <p className="mt-4">
-                  Local delivery may be available within San Francisco, San Mateo
-                  County, Palo Alto, and Santa Clara County. Nearby delivery is
-                  free.
-                </p>
-                <p className="mt-4">
-                  Bridge tolls apply when delivery requires crossing a bridge.
-                  The farthest bridge-accessible areas I can consider are Marin
-                  County and Alameda County; beyond that, shipping will be
-                  required.
-                </p>
-                <p className="mt-4">
-                  Please contact me before purchase if you would like local
-                  pickup or delivery so I can confirm it works.
                 </p>
               </ShippingCollapsible>
             </div>
