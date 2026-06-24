@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { X } from "lucide-react";
 
@@ -13,7 +13,6 @@ import { getCollection, priceLabel } from "@/lib/products";
 import { PhotoCarousel } from "./photo-carousel";
 
 const MARKER_GREEN = "#03F94D";
-const INK = "#413E3F";
 
 // Body copy sizing/family lifted from About (`bodyClass`) so questions/blurbs
 // read at the same scale across the site.
@@ -35,45 +34,39 @@ const PILL_BASE =
 const PILL_FILLED = `${PILL_BASE} bg-[#03F94D] hover:bg-[#02D944]`;
 const PILL_OUTLINE = `${PILL_BASE} bg-transparent hover:bg-[#03F94D]`;
 
-// Full-bleed dashed perforation divider between ticket sections.
+// Dashed perforation color.
 const DASH = "border-[#413E3F]/25";
+// Standard section padding (kept as a constant so the spec block can match it
+// while still letting its vertical divider span the full row height).
+const SECTION_PAD = "px-6 py-5";
 
 // ---------------------------------------------------------------------------
-// Ticket SHAPE — punched out of the cream card with CSS radial-gradient masks.
+// Ticket SHAPE — a rounded rectangle (flat, rounded top AND bottom) with a
+// half-circle NOTCH punched into the left and right edges at the first
+// perforation line. The notches are cut out of the cream card with two CSS
+// radial-gradient mask layers, composited with `intersect` so the card shows
+// only where BOTH layers are opaque (the two transparent circles become holes).
 //
-// Three mask layers, composited with `intersect` so the card shows only where
-// ALL layers are opaque (i.e. the UNION of the transparent circles becomes
-// holes):
-//   1. left side notch  — half-circle on the left edge at the first perforation
-//   2. right side notch — half-circle on the right edge, same height
-//   3. scalloped bottom — a full-height tile repeated across X with a small
-//      half-circle at its bottom-center, giving the torn-ticket bottom edge
-//
-// `NOTCH_Y` matches the carousel height (256px) so the side notches land on the
-// first dashed divider. The shape adapts to the card's auto height because the
-// scallop tile is `… 100%` tall and pinned to the bottom.
+// The image area is a 1:1 SQUARE, so its height = the ticket's rendered WIDTH,
+// which is responsive (caps at 460px, narrower on small screens). A fixed pixel
+// offset can't track that, so we MEASURE the carousel's height at runtime
+// (ResizeObserver) and drive the notch Y from it — keeping the notches exactly
+// on the first dashed divider at any width.
 // ---------------------------------------------------------------------------
-const CAROUSEL_H = 256; // keep in sync with PhotoCarousel's h-64
-const NOTCH_Y = CAROUSEL_H;
 const NOTCH_R = 14;
-const SCALLOP_R = 9;
 
-const notchLeft = `radial-gradient(circle ${NOTCH_R}px at left ${NOTCH_Y}px, transparent ${NOTCH_R}px, #000 ${NOTCH_R + 1}px)`;
-const notchRight = `radial-gradient(circle ${NOTCH_R}px at right ${NOTCH_Y}px, transparent ${NOTCH_R}px, #000 ${NOTCH_R + 1}px)`;
-const scallop = `radial-gradient(circle ${SCALLOP_R}px at 50% 100%, transparent ${SCALLOP_R}px, #000 ${SCALLOP_R + 1}px)`;
-
-const TICKET_MASK: CSSProperties = {
-  WebkitMaskImage: `${notchLeft}, ${notchRight}, ${scallop}`,
-  maskImage: `${notchLeft}, ${notchRight}, ${scallop}`,
-  WebkitMaskRepeat: "no-repeat, no-repeat, repeat-x",
-  maskRepeat: "no-repeat, no-repeat, repeat-x",
-  WebkitMaskPosition: "left top, right top, left bottom",
-  maskPosition: "left top, right top, left bottom",
-  WebkitMaskSize: `100% 100%, 100% 100%, ${SCALLOP_R * 2}px 100%`,
-  maskSize: `100% 100%, 100% 100%, ${SCALLOP_R * 2}px 100%`,
-  WebkitMaskComposite: "source-in",
-  maskComposite: "intersect",
-};
+function buildTicketMask(notchY: number): CSSProperties {
+  const left = `radial-gradient(circle ${NOTCH_R}px at left ${notchY}px, transparent ${NOTCH_R}px, #000 ${NOTCH_R + 1}px)`;
+  const right = `radial-gradient(circle ${NOTCH_R}px at right ${notchY}px, transparent ${NOTCH_R}px, #000 ${NOTCH_R + 1}px)`;
+  return {
+    WebkitMaskImage: `${left}, ${right}`,
+    maskImage: `${left}, ${right}`,
+    WebkitMaskRepeat: "no-repeat, no-repeat",
+    maskRepeat: "no-repeat, no-repeat",
+    WebkitMaskComposite: "source-in",
+    maskComposite: "intersect",
+  };
+}
 
 // Q1 — the SHARED ugly-babies gate question (same for every ugly piece). The
 // per-item Q2/Q3/price copy lives in `src/lib/adoptions.ts`.
@@ -89,29 +82,55 @@ const SHARED_Q1 = {
   closeLabel: "I'm not emotionally ready",
 };
 
-// Two small neon-green sparkles tucked near the bottom corners of the ticket.
-function CornerSparkles() {
+// Scattered decorative green sparkles framing the ticket (varied size/rotation),
+// behind the content (z-0) and non-interactive.
+const STAR_SCATTER: {
+  style: CSSProperties;
+  size: number;
+  delay: number;
+  rotate: number;
+}[] = [
+  { style: { top: "3%", left: "6%" }, size: 22, delay: 0, rotate: -12 },
+  { style: { top: "1%", right: "10%" }, size: 16, delay: 0.7, rotate: 10 },
+  { style: { top: "30%", left: "3%" }, size: 18, delay: 1.2, rotate: 8 },
+  { style: { top: "34%", right: "4%" }, size: 14, delay: 0.4, rotate: -8 },
+  { style: { top: "58%", left: "5%" }, size: 16, delay: 1.5, rotate: 14 },
+  { style: { top: "62%", right: "6%" }, size: 20, delay: 0.2, rotate: -6 },
+  { style: { bottom: "3%", left: "8%" }, size: 22, delay: 0.9, rotate: 6 },
+  { style: { bottom: "5%", right: "9%" }, size: 16, delay: 1.7, rotate: -14 },
+  { style: { bottom: "1%", left: "44%" }, size: 14, delay: 1.1, rotate: 12 },
+];
+
+function StarScatter() {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 z-20 select-none">
-      <span className="sparkle-twinkle absolute bottom-7 left-4">
-        <Sparkle size={18} color={MARKER_GREEN} />
-      </span>
-      <span
-        className="sparkle-twinkle absolute right-4 bottom-8"
-        style={{ animationDelay: "0.8s" }}
-      >
-        <Sparkle size={14} color={MARKER_GREEN} />
-      </span>
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 z-0 select-none"
+    >
+      {STAR_SCATTER.map((s, i) => (
+        <span key={i} className="absolute" style={s.style}>
+          <span
+            className="sparkle-twinkle block"
+            style={{ animationDelay: `${s.delay}s`, transform: `rotate(${s.rotate}deg)` }}
+          >
+            <Sparkle size={s.size} color={MARKER_GREEN} />
+          </span>
+        </span>
+      ))}
     </div>
   );
 }
 
 /**
- * The reusable SPEC rows — the same CLAY | TEMP two-column block (split by a
- * vertical dashed divider) and MEASUREMENT row used by BOTH the darling card
- * and the ugly funnel steps. Returns one node per present spec section (each
- * becomes its own dashed-divided ticket section); an empty array when there's
- * nothing to show, so missing data renders no row/divider at all.
+ * The reusable SPEC rows — the same CLAY | TEMP two-column block and MEASUREMENT
+ * row used by BOTH the darling card and the ugly funnel steps. Returns one node
+ * per present spec section (each becomes its own dashed-divided ticket section);
+ * an empty array when there's nothing to show, so missing data renders no
+ * row/divider at all.
+ *
+ * The CLAY | TEMP row carries its OWN padding (not the generic section padding)
+ * so the vertical dashed divider can `self-stretch` to the full row height and
+ * connect the horizontal perforation above to the one below.
  */
 function specNodes(d?: ProductDetails): ReactNode[] {
   if (!d) return [];
@@ -119,18 +138,18 @@ function specNodes(d?: ProductDetails): ReactNode[] {
 
   if (d.clay || d.temp) {
     nodes.push(
-      <div className="flex">
+      <div className="flex items-stretch">
         {d.clay && (
-          <div className={`flex-1 ${d.temp ? "pr-5" : ""}`}>
+          <div className="flex-1 py-5 pr-5 pl-6">
             <p className={LABEL_CLASS}>CLAY</p>
             <p className={`${VALUE_CLASS} mt-1`}>{d.clay}</p>
           </div>
         )}
         {d.clay && d.temp && (
-          <div className={`border-l border-dashed ${DASH}`} />
+          <div className={`self-stretch border-l border-dashed ${DASH}`} />
         )}
         {d.temp && (
-          <div className={`flex-1 ${d.clay ? "pl-5" : ""}`}>
+          <div className="flex-1 py-5 pr-6 pl-5">
             <p className={LABEL_CLASS}>TEMP</p>
             <p className={`${VALUE_CLASS} mt-1`}>{d.temp}</p>
           </div>
@@ -141,7 +160,7 @@ function specNodes(d?: ProductDetails): ReactNode[] {
 
   if (d.measurement) {
     nodes.push(
-      <div>
+      <div className={SECTION_PAD}>
         <p className={LABEL_CLASS}>MEASUREMENT</p>
         <p className={`${VALUE_CLASS} mt-1`}>{d.measurement}</p>
       </div>
@@ -154,20 +173,20 @@ function specNodes(d?: ProductDetails): ReactNode[] {
 /**
  * Product INTERSTITIAL — a TICKET / boarding-pass card.
  *
- * The SAME ticket frame serves both product types: a cream card with rounded
- * top corners, half-circle notches on the left/right edges at the first
- * perforation, a scalloped (torn) bottom edge, dashed perforation dividers
- * between sections, and a couple of green corner sparkles. The TOP of every
- * ticket is the image carousel; below the first dashed divider is the
- * type-specific content; the bottom holds the action button(s). The card height
- * HUGS its content (auto) and grows/shrinks per step/product, capped by
- * `max-h-[92svh]` with internal scroll for very tall tickets.
+ * The SAME ticket frame serves both product types: a cream rounded rectangle
+ * with half-circle notches on the left/right edges at the first perforation,
+ * dashed perforation dividers between sections, and scattered green sparkles.
+ * The TOP of every ticket is a 1:1 square image carousel; below the first dashed
+ * divider is the type-specific content; the bottom holds the action button(s).
+ * The card height HUGS its content (auto) and grows/shrinks per step/product,
+ * capped by `max-h-[92svh]` with internal scroll for very tall tickets.
  *
- *   · Darling babies → a single view: label + title + price + blurb, the
- *     reusable spec rows (only when data exists), and an "Add to cart" stub.
+ *   · Darling babies → a single view: label, then title + price on one row
+ *     (title left, price right), an optional blurb, the reusable spec rows
+ *     (only when data exists), and an "Adopt it" stub.
  *   · Ugly babies → the adoption FUNNEL (Q1 shared → Q2 → Q3 → price), each step
- *     rendered in ticket style and able to surface the same spec rows when the
- *     piece has spec data.
+ *     in ticket style and able to surface the same spec rows when the piece has
+ *     spec data.
  *
  * The top-left circular X shows only when the current step has no explicit
  * close/quit pill (so never two exits at once); Esc + backdrop always close.
@@ -186,12 +205,30 @@ export function ProductModal({
   const [checkoutNote, setCheckoutNote] = useState(false);
   const [cartNote, setCartNote] = useState(false);
 
+  // Notch Y is driven by the measured (square) carousel height so the side
+  // notches stay on the first perforation at any responsive width. Default to
+  // the max ticket width as a sensible first paint.
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [notchY, setNotchY] = useState(460);
+
   // Restart the funnel each time a new piece is opened.
   useEffect(() => {
     setStep(0);
     setPriceIdx(null);
     setCheckoutNote(false);
     setCartNote(false);
+  }, [product]);
+
+  // Measure the square image height → notch Y (and keep it in sync on resize).
+  useEffect(() => {
+    if (!product) return;
+    const el = carouselRef.current;
+    if (!el) return;
+    const update = () => setNotchY(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [product]);
 
   useEffect(() => {
@@ -243,7 +280,7 @@ export function ProductModal({
   };
 
   const labelTitle = (
-    <div>
+    <div className={SECTION_PAD}>
       <p className={LABEL_CLASS}>{collectionLabel}</p>
       <h2 className={`${TITLE_CLASS} mt-1`}>{product.title}</h2>
     </div>
@@ -256,28 +293,33 @@ export function ProductModal({
   if (!isFunnel) {
     // ---- DARLING: single product view ----
     sections.push(
-      <div>
+      <div className={SECTION_PAD}>
         <p className={LABEL_CLASS}>{collectionLabel}</p>
-        <h2 className={`${TITLE_CLASS} mt-1`}>{product.title}</h2>
-        {product.isSold ? (
-          <p className="mt-2 text-[18px] font-bold text-[#413E3F] line-through decoration-[#03F94D] decoration-[3px]">
-            Sold
-          </p>
-        ) : product.price > 0 ? (
-          <p className={`${VALUE_CLASS} mt-2`}>{priceLabel(product.price)}</p>
-        ) : null}
+        {/* Title + price share one row: title left, price pushed to the right. */}
+        <div className="mt-1 flex items-baseline justify-between gap-4">
+          <h2 className={TITLE_CLASS}>{product.title}</h2>
+          {product.isSold ? (
+            <span className="shrink-0 text-[18px] font-bold whitespace-nowrap text-[#413E3F] line-through decoration-[#03F94D] decoration-[3px]">
+              Sold
+            </span>
+          ) : product.price > 0 ? (
+            <span className={`${VALUE_CLASS} shrink-0 whitespace-nowrap`}>
+              {priceLabel(product.price)}
+            </span>
+          ) : null}
+        </div>
         {details?.blurb && <p className={`${BODY_CLASS} mt-3`}>{details.blurb}</p>}
       </div>
     );
     sections.push(...specNodes(details));
     sections.push(
-      <div>
+      <div className={SECTION_PAD}>
         <button
           type="button"
           onClick={handleAddToCart}
           className={`${PILL_FILLED} w-full`}
         >
-          Add to cart
+          Adopt it
         </button>
         {cartNote && (
           <p className="mt-3 text-center text-sm text-neutral-500">
@@ -289,13 +331,14 @@ export function ProductModal({
   } else if (step === 0) {
     // ---- UGLY Q1 (shared) ----
     sections.push(
-      <div>
-        {labelTitle}
+      <div className={SECTION_PAD}>
+        <p className={LABEL_CLASS}>{collectionLabel}</p>
+        <h2 className={`${TITLE_CLASS} mt-1`}>{product.title}</h2>
         <p className={`${BODY_CLASS} mt-3`}>{SHARED_Q1.body}</p>
       </div>
     );
     sections.push(
-      <div className="flex flex-col gap-3">
+      <div className={`${SECTION_PAD} flex flex-col gap-3`}>
         <button
           type="button"
           onClick={() => setStep(1)}
@@ -315,14 +358,15 @@ export function ProductModal({
   } else if (step === 1) {
     // ---- UGLY Q2 (per item) ----
     sections.push(
-      <div>
-        {labelTitle}
+      <div className={SECTION_PAD}>
+        <p className={LABEL_CLASS}>{collectionLabel}</p>
+        <h2 className={`${TITLE_CLASS} mt-1`}>{product.title}</h2>
         <p className={`${BODY_CLASS} mt-3`}>{flow!.q2.body}</p>
       </div>
     );
     sections.push(...specNodes(details));
     sections.push(
-      <div className="flex flex-col gap-3">
+      <div className={`${SECTION_PAD} flex flex-col gap-3`}>
         <button
           type="button"
           onClick={() => setStep(2)}
@@ -342,14 +386,15 @@ export function ProductModal({
   } else if (step === 2) {
     // ---- UGLY Q3 (per item) — BOTH buttons advance ----
     sections.push(
-      <div>
-        {labelTitle}
+      <div className={SECTION_PAD}>
+        <p className={LABEL_CLASS}>{collectionLabel}</p>
+        <h2 className={`${TITLE_CLASS} mt-1`}>{product.title}</h2>
         <p className={`${BODY_CLASS} mt-3`}>{flow!.q3.body}</p>
       </div>
     );
     sections.push(...specNodes(details));
     sections.push(
-      <div className="flex flex-col gap-3">
+      <div className={`${SECTION_PAD} flex flex-col gap-3`}>
         <button
           type="button"
           onClick={() => setStep(3)}
@@ -370,7 +415,7 @@ export function ProductModal({
     // ---- UGLY price step ----
     sections.push(labelTitle);
     sections.push(
-      <div>
+      <div className={SECTION_PAD}>
         <p className={BODY_CLASS}>Choose your adoption fee:</p>
         <div className="mt-4 flex flex-col gap-3">
           {flow!.prices.map((p, i) => {
@@ -394,7 +439,7 @@ export function ProductModal({
       </div>
     );
     sections.push(
-      <div>
+      <div className={SECTION_PAD}>
         <button
           type="button"
           onClick={handleAdopt}
@@ -427,13 +472,16 @@ export function ProductModal({
       />
 
       {/* The TICKET. Height hugs content (auto), capped + scrollable on small
-          screens. The cream plane is punched into a ticket silhouette by
-          `TICKET_MASK` (side notches + scalloped bottom). */}
+          screens. The cream rounded rectangle is punched with two side notches
+          (at the measured square-image height) by `buildTicketMask`. */}
       <div
         onClick={(e) => e.stopPropagation()}
-        style={TICKET_MASK}
+        style={buildTicketMask(notchY)}
         className="relative z-10 flex max-h-[92svh] w-full max-w-[460px] flex-col overflow-y-auto rounded-[20px] bg-[#FAF5ED] text-[#413E3F] shadow-2xl"
       >
+        {/* Scattered green sparkles — behind the content. */}
+        <StarScatter />
+
         {/* Circular X — TOP-LEFT. Shown only when the current step has no quit
             pill; Esc + backdrop always close. */}
         {showX && (
@@ -447,24 +495,24 @@ export function ProductModal({
           </button>
         )}
 
-        {/* TOP — image carousel (rounded to match the card's top corners). */}
-        <div className="overflow-hidden rounded-t-[20px]">
-          <PhotoCarousel images={images} alt={product.title} />
-        </div>
+        <div className="relative z-10">
+          {/* TOP — 1:1 square image carousel (rounded to match the top corners).
+              Measured for the notch Y. */}
+          <div ref={carouselRef} className="overflow-hidden rounded-t-[20px]">
+            <PhotoCarousel images={images} alt={product.title} />
+          </div>
 
-        {/* Lower content — sections separated by full-bleed dashed perforations
-            (the first one carries the side notches). */}
-        <div className="pb-8">
-          {sections.map((node, i) => (
-            <div key={i}>
-              <div className={`border-t border-dashed ${DASH}`} />
-              <div className="px-6 py-5">{node}</div>
-            </div>
-          ))}
+          {/* Lower content — sections separated by full-bleed dashed
+              perforations (the first one carries the side notches). */}
+          <div>
+            {sections.map((node, i) => (
+              <div key={i}>
+                <div className={`border-t border-dashed ${DASH}`} />
+                {node}
+              </div>
+            ))}
+          </div>
         </div>
-
-        {/* Decorative green sparkles near the bottom corners. */}
-        <CornerSparkles />
       </div>
     </div>
   );

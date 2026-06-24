@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * The ticket's TOP image carousel — one photo at a time on the cream card.
+ * The ticket's TOP image carousel — one photo at a time on the cream card,
+ * shown in a 1:1 SQUARE area (its height tracks the ticket width).
  *
  * Implementation is a horizontal scroll-snap track so MOBILE gets native touch
  * SWIPE for free; the native scrollbar is hidden (`.hide-scrollbar`). Overlaid
@@ -78,13 +79,13 @@ export function PhotoCarousel({
     <div className="relative w-full">
       <div
         ref={trackRef}
-        className="hide-scrollbar flex h-64 snap-x snap-mandatory overflow-x-auto scroll-smooth"
+        className="hide-scrollbar flex snap-x snap-mandatory overflow-x-auto scroll-smooth"
       >
         {images.map((src, i) => (
           <div
             key={src}
             data-slide
-            className="relative h-64 w-full shrink-0 snap-center bg-[#FAF5ED]"
+            className="relative aspect-square w-full shrink-0 snap-center bg-[#FAF5ED]"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
