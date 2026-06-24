@@ -1,5 +1,10 @@
-import type { ProductCellData } from "@/lib/products";
+"use client";
+
+import { useState } from "react";
+
+import type { Product, ProductCellData } from "@/lib/products";
 import { ProductCell } from "./product-cell";
+import { ProductModal } from "./product-modal";
 
 /**
  * Gallery-style product grid — full-bleed.
@@ -22,20 +27,35 @@ import { ProductCell } from "./product-cell";
  *
  * Visual style: no borders, shadows, dividers or card chrome — the cells blend
  * into one continuous white plane.
+ *
+ * This is the minimal CLIENT boundary that holds the "open product" state: a
+ * clicked cell opens a `ProductModal` (the detail route was removed) instead of
+ * navigating. Sold cells don't open the modal. It's shared by both the combined
+ * home grid and the per-collection pages, which just pass different `cells`.
  */
 export function ProductGrid({ cells }: { cells: ProductCellData[] }) {
+  const [open, setOpen] = useState<ProductCellData | null>(null);
+
   return (
     <>
       <style>{gridCss}</style>
       <ul className="ddc-grid">
-        {cells.map(({ product, collectionSlug }) => (
+        {cells.map((cell) => (
           <ProductCell
-            key={`${collectionSlug}/${product.id}`}
-            product={product}
-            collectionSlug={collectionSlug}
+            key={`${cell.collectionSlug}/${cell.product.id}`}
+            product={cell.product}
+            collectionSlug={cell.collectionSlug}
+            onOpen={(product: Product) =>
+              setOpen({ product, collectionSlug: cell.collectionSlug })
+            }
           />
         ))}
       </ul>
+      <ProductModal
+        product={open?.product ?? null}
+        collectionSlug={open?.collectionSlug ?? null}
+        onClose={() => setOpen(null)}
+      />
     </>
   );
 }

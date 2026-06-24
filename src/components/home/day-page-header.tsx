@@ -32,11 +32,11 @@ export function DayPageHeader() {
         </span>
       </Link>
 
-      {/* Cart bag with a (placeholder) count badge — mirrors the home header. */}
+      {/* Cart bag (→ /bag) with a (placeholder) count badge — mirrors home. */}
       <div className="relative">
-        <button type="button" aria-label="Cart, 0 items" className={circleButton}>
+        <Link href="/bag" aria-label="Cart, 0 items" className={circleButton}>
           <ShoppingBag className="size-5 text-[#413E3F] transition-colors" />
-        </button>
+        </Link>
         <span className="pointer-events-none absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#03F94D] px-1 text-[10px] font-bold text-[#413E3F] ring-2 ring-[#F8F5EE] tabular-nums">
           0
         </span>

@@ -71,7 +71,7 @@
     ],
     "detailVideos": [],
     "hoverType": "spin360",
-    "price": 0,
+    "price": 35,
     "isSold": false
   },
   "darling-babies/bowl-in-dark-clay": {
@@ -87,23 +87,7 @@
     ],
     "detailVideos": [],
     "hoverType": "spin360",
-    "price": 0,
-    "isSold": false
-  },
-  "darling-babies/green-celadon-tasting-cup": {
-    "category": "cups",
-    "title": "Green Celadon Tasting Cup",
-    "defaultImage": "/images/products/darling-babies/green-celadon-tasting-cup/main.webp",
-    "alternateImage": null,
-    "spinMedia": "/images/spin/green-celadon-tasting-cup",
-    "detailImages": [
-      "/images/products/darling-babies/green-celadon-tasting-cup/detail/01.webp",
-      "/images/products/darling-babies/green-celadon-tasting-cup/detail/02.webp",
-      "/images/products/darling-babies/green-celadon-tasting-cup/detail/03.webp"
-    ],
-    "detailVideos": [],
-    "hoverType": "spin360",
-    "price": 0,
+    "price": 45,
     "isSold": false
   },
   "darling-babies/guava-cup": {
@@ -120,7 +104,7 @@
     ],
     "detailVideos": [],
     "hoverType": "spin360",
-    "price": 0,
+    "price": 45,
     "isSold": false
   },
   "darling-babies/guava-sharing-cup": {
@@ -137,7 +121,7 @@
     ],
     "detailVideos": [],
     "hoverType": "spin360",
-    "price": 0,
+    "price": 45,
     "isSold": false
   },
   "darling-babies/mug-with-half-heart-handle": {
@@ -168,7 +152,7 @@
     ],
     "detailVideos": [],
     "hoverType": "spin360",
-    "price": 0,
+    "price": 45,
     "isSold": false
   },
   "darling-babies/raku-blue-holder": {
@@ -204,15 +188,48 @@
     "price": 0,
     "isSold": false
   },
-  "darling-babies/snow-cup": {
+  "ugly-babies/green-celadon-tasting-cup": {
+    "category": "cups",
+    "title": "Green Celadon Tasting Cup",
+    "defaultImage": "/images/products/ugly-babies/green-celadon-tasting-cup/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/green-celadon-tasting-cup",
+    "detailImages": [
+      "/images/products/ugly-babies/green-celadon-tasting-cup/detail/01.webp",
+      "/images/products/ugly-babies/green-celadon-tasting-cup/detail/02.webp",
+      "/images/products/ugly-babies/green-celadon-tasting-cup/detail/03.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "ugly-babies/raku-yellow-ash-tray": {
+    "category": "objects",
+    "title": "Raku Yellow Ash Tray",
+    "defaultImage": "/images/products/ugly-babies/raku-yellow-ash-tray/main.webp",
+    "alternateImage": null,
+    "spinMedia": "/images/spin/raku-yellow-ash-tray",
+    "detailImages": [
+      "/images/products/ugly-babies/raku-yellow-ash-tray/detail/01.webp",
+      "/images/products/ugly-babies/raku-yellow-ash-tray/detail/02.webp"
+    ],
+    "detailVideos": [],
+    "hoverType": "spin360",
+    "price": 0,
+    "isSold": false
+  },
+  "ugly-babies/snow-cup": {
     "category": "cups",
     "title": "Snow Cup",
-    "defaultImage": "/images/products/darling-babies/snow-cup/main.webp",
+    "defaultImage": "/images/products/ugly-babies/snow-cup/main.webp",
     "alternateImage": null,
     "spinMedia": "/images/spin/snow-cup",
     "detailImages": [
-      "/images/products/darling-babies/snow-cup/detail/01.webp",
-      "/images/products/darling-babies/snow-cup/detail/02.webp"
+      "/images/products/ugly-babies/snow-cup/detail/01.webp",
+      "/images/products/ugly-babies/snow-cup/detail/02.webp",
+      "/images/products/ugly-babies/snow-cup/detail/03.webp",
+      "/images/products/ugly-babies/snow-cup/detail/04.webp"
     ],
     "detailVideos": [],
     "hoverType": "spin360",

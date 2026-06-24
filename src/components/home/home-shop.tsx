@@ -9,8 +9,8 @@ import { allProductCells } from "@/lib/products";
  * The site's MAIN home (`/`): one combined, full-bleed grid of EVERY product
  * across all collections (darling-babies + ugly-babies together), reusing the
  * collection `ProductGrid`/`ProductCell` (incl. the neon-green price hover
- * badge). Cells still link to their own `/collections/<collection>/<product>`
- * detail routes — the underlying collection data/routes are untouched.
+ * badge). Clicking a cell opens the product modal (the per-product detail route
+ * was removed); the underlying collection data is untouched.
  *
  * Header (88px, mirrors the collection header so the grid row math lines up):
  *   - LEFT  : smiley circular button → the DAY scroll experience (`/day`)
@@ -39,11 +39,11 @@ export function HomeShop() {
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#413E3F]"
         />
 
-        {/* RIGHT — cart bag with a (placeholder) count badge. */}
+        {/* RIGHT — cart bag (→ /bag) with a (placeholder) count badge. */}
         <div className="relative">
-          <button type="button" aria-label="Cart, 0 items" className={circleButton}>
+          <Link href="/bag" aria-label="Cart, 0 items" className={circleButton}>
             <ShoppingBag className="size-5 text-[#413E3F] transition-colors" />
-          </button>
+          </Link>
           <span className="pointer-events-none absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#03F94D] px-1 text-[10px] font-bold text-[#413E3F] ring-2 ring-[#FAF5ED] tabular-nums">
             0
           </span>

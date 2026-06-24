@@ -150,7 +150,7 @@ const baseCollections: Collection[] = [
         slug: "raku-white-bowl",
         title: "Raku White Bowl",
         category: "objects",
-        price: 0,
+        price: 35,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
@@ -166,7 +166,7 @@ const baseCollections: Collection[] = [
         slug: "apple-melted",
         title: "Apple Melted",
         category: "objects",
-        price: 0,
+        price: 85,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
@@ -182,7 +182,7 @@ const baseCollections: Collection[] = [
         slug: "raku-blue-holder",
         title: "Raku Blue Holder",
         category: "objects",
-        price: 0,
+        price: 28,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
@@ -198,7 +198,7 @@ const baseCollections: Collection[] = [
         slug: "apple-with-a-hole",
         title: "Apple With A Hole",
         category: "objects",
-        price: 0,
+        price: 85,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
@@ -214,7 +214,7 @@ const baseCollections: Collection[] = [
         slug: "blue-vase",
         title: "Blue Vase",
         category: "objects",
-        price: 0,
+        price: 35,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
@@ -230,7 +230,7 @@ const baseCollections: Collection[] = [
         slug: "apple-peeled",
         title: "Apple Peeled",
         category: "objects",
-        price: 0,
+        price: 65,
         isSold: false,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
@@ -247,23 +247,7 @@ const baseCollections: Collection[] = [
         title: "Mug With Half Heart Handle",
         category: "mugs",
         price: 0,
-        isSold: false,
-        defaultImage: "/images/products/feature.webp",
-        detailImages: [],
-        detailVideos: [],
-        hoverType: "spin360",
-        alternateImage: null,
-        spinMedia: "/images/spin/cup-a",
-        shopifyProductId: null,
-        shopifyVariantId: null,
-      },
-      {
-        id: "green-celadon-tasting-cup",
-        slug: "green-celadon-tasting-cup",
-        title: "Green Celadon Tasting Cup",
-        category: "cups",
-        price: 0,
-        isSold: false,
+        isSold: true,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
         detailVideos: [],
@@ -279,104 +263,11 @@ const baseCollections: Collection[] = [
     slug: "ugly-babies",
     title: "Ugly Babies",
     tagline: "Sculptural vessels for stems, branches, and quiet corners.",
-    products: [
-      {
-        id: "vases-01",
-        slug: "bud-vase",
-        title: "Bud Vase",
-        category: "objects",
-        price: 64,
-        isSold: false,
-        defaultImage: "/images/products/feature.webp",
-        detailImages: [],
-        detailVideos: [],
-        hoverType: "spin360",
-        alternateImage: null,
-        spinMedia: "/images/spin/cup-a",
-        shopifyProductId: null,
-        shopifyVariantId: null,
-      },
-      {
-        id: "vases-02",
-        slug: "bottle-vase",
-        title: "Bottle Vase",
-        category: "objects",
-        price: 88,
-        isSold: false,
-        defaultImage: "/images/products/feature.webp",
-        detailImages: [],
-        detailVideos: [],
-        hoverType: "spin360",
-        alternateImage: null,
-        spinMedia: "/images/spin/cup-a",
-        shopifyProductId: null,
-        shopifyVariantId: null,
-      },
-      {
-        id: "vases-03",
-        slug: "moon-jar",
-        title: "Moon Jar",
-        category: "objects",
-        price: 220,
-        isSold: false,
-        defaultImage: "/images/products/feature.webp",
-        detailImages: [],
-        detailVideos: [],
-        hoverType: "spin360",
-        alternateImage: null,
-        spinMedia: "/images/spin/cup-a",
-        shopifyProductId: null,
-        shopifyVariantId: null,
-      },
-      {
-        id: "vases-04",
-        slug: "tall-cylinder",
-        title: "Tall Cylinder",
-        category: "objects",
-        price: 96,
-        isSold: true,
-        defaultImage: "/images/products/feature.webp",
-        detailImages: [],
-        detailVideos: [],
-        hoverType: "spin360",
-        alternateImage: null,
-        spinMedia: "/images/spin/cup-a",
-        shopifyProductId: null,
-        shopifyVariantId: null,
-      },
-      {
-        id: "vases-05",
-        slug: "ikebana-vessel",
-        title: "Ikebana Vessel",
-        category: "objects",
-        price: 74,
-        isSold: false,
-        defaultImage: "/images/products/feature.webp",
-        detailImages: [],
-        detailVideos: [],
-        hoverType: "spin360",
-        alternateImage: null,
-        spinMedia: "/images/spin/cup-a",
-        shopifyProductId: null,
-        shopifyVariantId: null,
-      },
-      {
-        id: "vases-06",
-        slug: "pinched-vase",
-        title: "Pinched Vase",
-        category: "objects",
-        price: 58,
-        isSold: false,
-        defaultImage: "/images/products/feature.webp",
-        detailImages: [],
-        detailVideos: [],
-        hoverType: "spin360",
-        alternateImage: null,
-        spinMedia: "/images/spin/cup-a",
-        shopifyProductId: null,
-        shopifyVariantId: null,
-      },
-    ],
+    // No hand-authored seed pieces: every ugly-babies piece (green-celadon
+    // tasting cup + snow cup moved here from darling, plus the raku yellow ash
+    // tray) is supplied entirely by the generated layer and APPENDED here by
+    // `buildCollections`. These are "adopt" pieces — shown without a price.
+    products: [],
   },
 ];
 
@@ -481,9 +372,47 @@ export function collectionCells(collection: Collection): ProductCellData[] {
   }));
 }
 
-/** Every product across all collections, flattened for the combined home grid. */
+/**
+ * Deterministically INTERLEAVE several ordered lists into one, spreading each
+ * list proportionally across the result. At every step we emit the next item
+ * from whichever list is currently the FURTHEST BEHIND its proportional share
+ * (`consumed / length`), with ties broken by list order. This keeps each
+ * collection's own order intact while mixing them evenly — and it depends only
+ * on the input lengths/order, so it is STABLE across renders (identical on the
+ * server and client → no hydration mismatch, no reshuffle on refresh).
+ */
+function interleaveProportional<T>(lists: T[][]): T[] {
+  const out: T[] = [];
+  const consumed = lists.map(() => 0);
+  const total = lists.reduce((n, l) => n + l.length, 0);
+  for (let step = 0; step < total; step++) {
+    let pick = -1;
+    let bestShare = Infinity;
+    for (let i = 0; i < lists.length; i++) {
+      if (consumed[i] >= lists[i].length) continue;
+      const share = consumed[i] / lists[i].length;
+      if (share < bestShare) {
+        bestShare = share;
+        pick = i;
+      }
+    }
+    out.push(lists[pick][consumed[pick]]);
+    consumed[pick]++;
+  }
+  return out;
+}
+
+/**
+ * Every product across all collections, for the combined home grid. The
+ * collections are INTERLEAVED (see `interleaveProportional`) so the smaller
+ * collection (e.g. the three "ugly babies") is mixed evenly through the grid
+ * instead of clumping in its own trailing rows. The ordering is deterministic
+ * (no `Math.random`), so it matches between SSR and the client.
+ */
 export function allProductCells(): ProductCellData[] {
-  return collections.flatMap((collection) => collectionCells(collection));
+  return interleaveProportional(
+    collections.map((collection) => collectionCells(collection))
+  );
 }
 
 /** Look up a product within a collection by its SLUG (not id). */

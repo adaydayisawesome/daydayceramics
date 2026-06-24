@@ -1,0 +1,15 @@
+{
+  "name": "raku-yellow-ash-tray",
+  "source": "video_20260618200845.mp4",
+  "createdAt": "2026-06-23T23:51:33.718Z",
+  "frameCount": 24,
+  "frameWidth": 617,
+  "frameHeight": 480,
+  "cols": 5,
+  "rows": 5,
+  "sprite": "sprite.webp",
+  "sequence": "frames/frame_%03d.webp",
+  "turns": 1,
+  "settleFrame": 0,
+  "spritePrint": "sprite-print.webp"
+}
