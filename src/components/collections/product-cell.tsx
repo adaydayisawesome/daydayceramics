@@ -61,7 +61,10 @@ export function ProductCell({
   // Desktop spins on hover; mobile auto-spins all cells (no hover to rely on).
   const active = (hovered && canHover) || isMobile;
   const grayscale = product.isSold;
-  const isAdopt = collectionSlug === "ugly-babies";
+  // Every piece now shows the "Adopt" pill instead of a price (sold pieces
+  // still render "Sold" — handled first in CellLabel). collectionSlug is
+  // surfaced as a data attribute for future per-collection styling/logic.
+  const isAdopt = true;
 
   // Hover handlers are shared by the clickable and sold variants so SOLD pieces
   // still spin (and auto-spin on mobile) even though they don't open the modal.
@@ -88,7 +91,7 @@ export function ProductCell({
   // SOLD pieces are NOT clickable (no modal, default cursor) but still hover /
   // auto-spin, so they render as a plain div rather than a button.
   return (
-    <li className="ddc-cell">
+    <li className="ddc-cell" data-collection={collectionSlug}>
       {product.isSold ? (
         <div
           className="group relative block h-full w-full cursor-default"
