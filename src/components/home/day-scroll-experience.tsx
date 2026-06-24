@@ -337,24 +337,17 @@ export function DayScrollExperience() {
             >
               A tiny{" "}
               <span className="relative inline-block">
-                <span className="relative z-10">adoption agency</span>
-                <svg
+                {/* Neon-green brush/highlighter swipe behind the words. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/home-v2/marker-highlight.webp"
+                  alt=""
                   aria-hidden
-                  viewBox="0 0 300 100"
-                  preserveAspectRatio="none"
-                  className="pointer-events-none absolute top-1/2 left-1/2 h-[165%] w-[116%] -translate-x-1/2 -translate-y-1/2"
-                >
-                  <path
-                    d="M20 54 C 12 24, 74 10, 152 11 C 236 12, 294 28, 286 56 C 280 84, 212 95, 138 93 C 58 91, 8 78, 24 48"
-                    fill="none"
-                    stroke="#03F94D"
-                    strokeOpacity={0.7}
-                    strokeWidth={2.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                </svg>
+                  draggable={false}
+                  className="pointer-events-none absolute top-1/2 left-1/2 z-0 h-[150%] w-[114%] -translate-x-1/2 -translate-y-1/2 select-none"
+                  style={{ objectFit: "fill" }}
+                />
+                <span className="relative z-10">adoption agency</span>
               </span>{" "}
               for handmade ceramic babies
             </p>
