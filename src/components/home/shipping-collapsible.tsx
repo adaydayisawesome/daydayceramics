@@ -32,7 +32,7 @@ export function ShippingCollapsible({
   const bodyId = `${id}-body`;
 
   return (
-    <div className="border-t border-[#413E3F]/20">
+    <div className="border-t border-[#03F94D]">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
