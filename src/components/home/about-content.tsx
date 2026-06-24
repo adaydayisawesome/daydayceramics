@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail } from "lucide-react";
 
+import { ShippingCollapsible } from "./shipping-collapsible";
+
 const bodyClass =
   "font-[family-name:var(--font-figtree)] text-[18px] leading-[1.4] font-normal";
 
@@ -136,39 +138,85 @@ export function AboutContent({ showHands = true }: { showHands?: boolean }) {
             </a>
           </div>
 
-          {/* Shipping & Returns — sits below the About bio, same single column. */}
+          {/* Shipping & Returns — sits below the About bio, same single column.
+              "Returns & Exchanges" leads (always visible); the remaining
+              sections are collapsed-by-default accordions. */}
           <div className="mt-16">
-            <h2 className={subheadingClass}>Shipping &amp; Returns</h2>
+            <h2 className={subheadingClass}>Returns &amp; Exchanges</h2>
             <p className={`${bodyClass} mt-6`}>
               All sales are final. I do not accept returns or exchanges for
               change of mind, small handmade variations, or expected
               imperfections that are shown or described in the listing.
             </p>
             <p className={`${bodyClass} mt-4`}>
-              I pack each piece with care, but ceramics are fragile and damage
-              during shipping can happen.
+              Each piece is handmade, so small irregularities are part of the
+              object, not a defect.
             </p>
-            <p className={`${bodyClass} mt-4`}>
-              If your piece arrives completely broken, please contact me within 3
-              days of delivery with clear photos of the item, packaging, and
-              shipping box. Once confirmed, I will refund 100% of the item price.
-            </p>
-            <p className={`${bodyClass} mt-4`}>
-              If your piece arrives with minor shipping damage, such as a chipped
-              corner or small break, please contact me within 3 days of delivery
-              with clear photos. Once confirmed, I will refund 50% of the item
-              price.
-            </p>
-            <p className={`${bodyClass} mt-4`}>Shipping fees are non-refundable.</p>
-            <p className={`${bodyClass} mt-4`}>
-              Damage claims must be supported with photos of both the damaged
-              piece and the packaging. This helps me improve future packing and,
-              when applicable, file a claim with the carrier.
-            </p>
-            <p className={`${bodyClass} mt-4`}>
-              Refunds for shipping damage are assessed case by case based on the
-              severity of the damage and whether the piece remains functional.
-            </p>
+
+            <div className="mt-8">
+              <ShippingCollapsible title="Shipping Damage" id="shipping-damage">
+                <p>
+                  I pack each piece with care, but ceramics are fragile and
+                  shipping can be rude.
+                </p>
+                <p className="mt-4">
+                  If your piece arrives damaged, please contact me within 3 days
+                  of delivery with clear photos of the item, packaging, and
+                  shipping box.
+                </p>
+                <p className="mt-4">
+                  Once confirmed, I’ll work with you on a fair resolution based
+                  on the condition of the piece and the severity of the damage.
+                  Since each piece is one of a kind, replacements are usually not
+                  possible, but I’ll do my best to make it right.
+                </p>
+                <p className="mt-4">
+                  Damage claims must be supported with photos of both the damaged
+                  piece and the packaging. This helps me improve future packing
+                  and, when applicable, file a claim with the carrier.
+                </p>
+              </ShippingCollapsible>
+
+              <ShippingCollapsible title="Shipping" id="shipping">
+                <p>Shipping fees are non-refundable.</p>
+                <p className="mt-4">
+                  For U.S. shipping, rates are estimated based on the size,
+                  weight, and fragility of each piece. Small pieces usually ship
+                  for around $15, while medium pieces usually ship for around
+                  $25. Large, oversized, or extra-fragile pieces may require a
+                  separate shipping quote.
+                </p>
+                <p className="mt-4">
+                  Each piece will be packed carefully before it goes out into the
+                  world, because apparently ceramics are dramatic.
+                </p>
+              </ShippingCollapsible>
+
+              <ShippingCollapsible
+                title="Local Pickup & Delivery"
+                id="local-pickup-delivery"
+              >
+                <p>Local pickup is free of charge.</p>
+                <p className="mt-4">
+                  Local delivery may be available within San Mateo County, the
+                  Peninsula, and parts of the South Bay. Nearby delivery is free.
+                </p>
+                <p className="mt-4">
+                  If you are a little farther out but still within a reasonable
+                  drive, I may ask for a $5 fuel fee.
+                </p>
+                <p className="mt-4">
+                  If you are very far away, across the bay in a way that turns
+                  this into a whole side quest, or beyond roughly 50 miles,
+                  shipping will be required instead. The southernmost delivery
+                  area is San Jose.
+                </p>
+                <p className="mt-4">
+                  Please contact me before purchase if you would like local
+                  pickup or delivery so I can confirm it works.
+                </p>
+              </ShippingCollapsible>
+            </div>
           </div>
 
           {/* Mobile-only bottom-left hand: rendered in the content flow so it
