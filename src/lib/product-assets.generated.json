@@ -56,7 +56,7 @@
     "detailVideos": [],
     "hoverType": "spin360",
     "price": 0,
-    "isSold": false
+    "isSold": true
   },
   "darling-babies/blue-wave-on-black-sand": {
     "category": "cups",
@@ -88,7 +88,7 @@
     "detailVideos": [],
     "hoverType": "spin360",
     "price": 45,
-    "isSold": false
+    "isSold": true
   },
   "darling-babies/guava-cup": {
     "category": "cups",

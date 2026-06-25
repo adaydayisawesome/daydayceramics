@@ -215,7 +215,7 @@ const baseCollections: Collection[] = [
         title: "Blue Vase",
         category: "objects",
         price: 35,
-        isSold: false,
+        isSold: true,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
         detailVideos: [],
