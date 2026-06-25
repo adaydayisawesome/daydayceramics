@@ -496,19 +496,13 @@ export function ProductModal({
         className="absolute inset-0 bg-[#413E3F]/45 backdrop-blur-[2px]"
       />
 
-      {/* The TICKET. Height hugs content (auto), capped + scrollable on small
-          screens. The cream rounded rectangle is punched with two side notches
-          (at the measured square-image height) by `buildTicketMask`. */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={buildTicketMask(notchY)}
-        className="relative z-10 flex max-h-[92svh] w-full max-w-[460px] flex-col overflow-y-auto rounded-[20px] bg-[#FAF5ED] text-[#413E3F] shadow-2xl"
-      >
-        {/* Scattered green sparkles — behind the content. */}
-        <StarScatter />
-
-        {/* Circular X — TOP-LEFT. Shown only when the current step has no quit
-            pill; Esc + backdrop always close. */}
+      {/* Positioning wrapper sized to the ticket. The X is rendered HERE, as a
+          sibling of the scroll container, so it pins to the dialog's top-left
+          and never scrolls away with a tall ticket's content. */}
+      <div className="relative z-10 w-full max-w-[460px]">
+        {/* Circular X — TOP-LEFT, pinned (outside the scrolling ticket). Shown
+            only when the current step has no quit pill; Esc + backdrop always
+            close. */}
         {showX && (
           <button
             type="button"
@@ -520,22 +514,35 @@ export function ProductModal({
           </button>
         )}
 
-        <div className="relative z-10">
-          {/* TOP — 1:1 square image carousel (rounded to match the top corners).
-              Measured for the notch Y. */}
-          <div ref={carouselRef} className="overflow-hidden rounded-t-[20px]">
-            <PhotoCarousel images={images} alt={product.title} />
-          </div>
+        {/* The TICKET (scroll container). Height hugs content (auto), capped +
+            scrollable on small screens. The cream rounded rectangle is punched
+            with two side notches (at the measured square-image height) by
+            `buildTicketMask`. */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={buildTicketMask(notchY)}
+          className="relative flex max-h-[92svh] w-full flex-col overflow-y-auto rounded-[20px] bg-[#FAF5ED] text-[#413E3F] shadow-2xl"
+        >
+          {/* Scattered green sparkles — behind the content. */}
+          <StarScatter />
 
-          {/* Lower content — sections separated by full-bleed dashed
-              perforations (the first one carries the side notches). */}
-          <div>
-            {sections.map((node, i) => (
-              <div key={i}>
-                <div className={`border-t border-dashed ${DASH}`} />
-                {node}
-              </div>
-            ))}
+          <div className="relative z-10">
+            {/* TOP — 1:1 square image carousel (rounded to match top corners).
+                Measured for the notch Y. */}
+            <div ref={carouselRef} className="overflow-hidden rounded-t-[20px]">
+              <PhotoCarousel images={images} alt={product.title} />
+            </div>
+
+            {/* Lower content — sections separated by full-bleed dashed
+                perforations (the first one carries the side notches). */}
+            <div>
+              {sections.map((node, i) => (
+                <div key={i}>
+                  <div className={`border-t border-dashed ${DASH}`} />
+                  {node}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
