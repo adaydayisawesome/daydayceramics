@@ -38,6 +38,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     clay: "B3 BROWN",
     temp: "CONE 5",
     measurement: "Di 6.76in, De 2.5in, Hi 2.75in",
+    checkoutUrl: "https://buy.stripe.com/6oUaEXby73WP4BM7Ul14406",
   },
   "raku-white-bowl": {
     blurb:
@@ -56,6 +57,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     clay: "porcelain",
     temp: "Cone 5",
     measurement: "to be added",
+    checkoutUrl: "https://buy.stripe.com/bJecN56dN0KD0lw5Md14401",
   },
   "apple-with-a-hole": {
     blurb:
@@ -63,6 +65,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     clay: "porcelain",
     temp: "Cone 5",
     measurement: "to be added",
+    checkoutUrl: "https://buy.stripe.com/4gMeVdcCbeBt6JU0rT14402",
   },
   "apple-peeled": {
     blurb:
@@ -70,6 +73,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     clay: "porcelain",
     temp: "Cone 5",
     measurement: "to be added",
+    checkoutUrl: "https://buy.stripe.com/5kQcN5eKjbph3xIb6x14403",
   },
   "blue-vase": {
     blurb:
@@ -77,6 +81,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     clay: "Bmix smooth",
     temp: "Cone 5",
     measurement: "Diameter: 4in; Tall: 3.5in",
+    checkoutUrl: "https://buy.stripe.com/14A00jfOn50T4BMa2t14404",
   },
   "blue-wave-on-black-sand": {
     blurb:
@@ -84,6 +89,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     clay: "Night",
     temp: "Cone 5",
     measurement: "Diameter: 3in; Tall: 3in",
+    checkoutUrl: "https://buy.stripe.com/00w6oH31BfFxc4ecaB14405",
   },
   "guava-cup": {
     blurb:
@@ -91,6 +97,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     clay: "BMix Smooth",
     temp: "Cone 5",
     measurement: "Cup: 3.5in x 2.5in; Saucer: 5in x 4.5in",
+    checkoutUrl: "https://buy.stripe.com/28E00jeKjfFx8S21vX14407",
   },
   "guava-sharing-cup": {
     blurb:
@@ -98,6 +105,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     clay: "BMix Smooth",
     temp: "Cone 5",
     measurement: "with lid: 4.5in x 5.5in",
+    checkoutUrl: "https://buy.stripe.com/6oU3cv59J1OH3xI2A114408",
   },
   "petal-matcha-bowl": {
     blurb:
@@ -105,6 +113,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     clay: "BMix Smooth",
     temp: "Cone 5",
     measurement: "5.5in x 3in",
+    checkoutUrl: "https://buy.stripe.com/6oUaEX8lV64Xb0adeF14409",
   },
 
   // --- Ugly pieces. No blurb; specs surface on the Q2 funnel step. ---
