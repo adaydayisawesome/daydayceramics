@@ -168,7 +168,7 @@ const baseCollections: Collection[] = [
         title: "Apple Melted",
         category: "objects",
         price: 85,
-        isSold: false,
+        isSold: true,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
         detailVideos: [],
