@@ -332,14 +332,21 @@ export function ProductModal({
     sections.push(...specNodes(details));
     sections.push(
       <div className={SECTION_PAD}>
-        <button
-          type="button"
-          onClick={handleAddToCart}
-          className={`${PILL_FILLED} w-full`}
-        >
-          Adopt it
-        </button>
-        {cartNote && (
+        {details?.checkoutUrl ? (
+          // Real Stripe payment link — navigate in the same tab.
+          <a href={details.checkoutUrl} className={`${PILL_FILLED} w-full`}>
+            Adopt it
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className={`${PILL_FILLED} w-full`}
+          >
+            Adopt it
+          </button>
+        )}
+        {!details?.checkoutUrl && cartNote && (
           <p className="mt-3 text-center text-sm text-neutral-500">
             Cart coming soon.
           </p>

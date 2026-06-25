@@ -24,6 +24,11 @@ export type ProductDetails = {
   crackLength?: string;
   /** Cautionary note, e.g. "Not food safe". Rendered as its own WARNING row. */
   warning?: string;
+  /**
+   * Stripe payment-link URL. When set, the darling card's "Adopt it" button
+   * navigates here (same tab) instead of running the cart stub.
+   */
+  checkoutUrl?: string;
 };
 
 export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
@@ -41,6 +46,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     temp: "Raku firing",
     measurement: "Typical matcha bowl size",
     warning: "Not food safe",
+    checkoutUrl: "https://buy.stripe.com/00w5kDby73WP9W6caB14400",
   },
 
   // --- Darling pieces. Spec VALUES are intentionally verbatim (mixed casing). ---
