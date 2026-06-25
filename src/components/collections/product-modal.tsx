@@ -167,6 +167,15 @@ function specNodes(d?: ProductDetails): ReactNode[] {
     );
   }
 
+  if (d.warning) {
+    nodes.push(
+      <div className={SECTION_PAD}>
+        <p className={LABEL_CLASS}>WARNING</p>
+        <p className={`${VALUE_CLASS} mt-1`}>{d.warning}</p>
+      </div>
+    );
+  }
+
   return nodes;
 }
 

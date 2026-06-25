@@ -20,6 +20,8 @@ export type ProductDetails = {
   temp?: string;
   /** Dimensions string, e.g. "Di 6.76in, De 2.5in, Hi 2.75in". */
   measurement?: string;
+  /** Cautionary note, e.g. "Not food safe". Rendered as its own WARNING row. */
+  warning?: string;
 };
 
 export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
@@ -29,6 +31,14 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     clay: "B3 BROWN",
     temp: "CONE 5",
     measurement: "Di 6.76in, De 2.5in, Hi 2.75in",
+  },
+  "raku-white-bowl": {
+    blurb:
+      "A raku-fired, matcha-bowl-sized object with smoky crackles and quiet drama. Decorative only; not food safe.",
+    clay: "Raku Sculpture",
+    temp: "Raku firing",
+    measurement: "Typical matcha bowl size",
+    warning: "Not food safe",
   },
 };
 
