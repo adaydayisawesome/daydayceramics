@@ -463,17 +463,28 @@ export function ProductModal({
         </div>
       </div>
     );
+    const selectedPrice = priceIdx === null ? undefined : flow!.prices[priceIdx];
     sections.push(
       <div className={SECTION_PAD}>
-        <button
-          type="button"
-          onClick={handleAdopt}
-          disabled={priceIdx === null}
-          className={`${PILL_FILLED} w-full disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#03F94D]`}
-        >
-          Adopt it!
-        </button>
-        {checkoutNote && (
+        {selectedPrice?.checkoutUrl ? (
+          // Real Stripe payment link for the chosen option — same-tab nav.
+          <a
+            href={selectedPrice.checkoutUrl}
+            className={`${PILL_FILLED} w-full`}
+          >
+            Adopt it!
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={handleAdopt}
+            disabled={priceIdx === null}
+            className={`${PILL_FILLED} w-full disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#03F94D]`}
+          >
+            Adopt it!
+          </button>
+        )}
+        {checkoutNote && !selectedPrice?.checkoutUrl && (
           <p className="mt-3 text-center text-sm text-neutral-500">
             Checkout coming soon.
           </p>

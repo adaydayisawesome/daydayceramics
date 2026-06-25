@@ -16,6 +16,11 @@ export type PriceOption = {
   amount: number;
   /** Flavor label shown beside the price. */
   label: string;
+  /**
+   * Stripe payment-link URL for this option. When set, "Adopt it!" navigates
+   * here (same tab); otherwise it falls back to the cart stub.
+   */
+  checkoutUrl?: string;
 };
 
 export type AdoptionFlow = {
@@ -40,9 +45,21 @@ export const ADOPTIONS: Record<string, AdoptionFlow> = {
       rightLabel: "just let me buy it",
     },
     prices: [
-      { amount: 15, label: "I can love a freckle" },
-      { amount: 20, label: "I support glaze drama" },
-      { amount: 25, label: "This baby deserves a future" },
+      {
+        amount: 15,
+        label: "I can love a freckle",
+        checkoutUrl: "https://buy.stripe.com/5kQfZh1Xx791c4efmN1440a",
+      },
+      {
+        amount: 20,
+        label: "I support glaze drama",
+        checkoutUrl: "https://buy.stripe.com/6oU6oH1Xx7916JUeiJ1440b",
+      },
+      {
+        amount: 25,
+        label: "This baby deserves a future",
+        checkoutUrl: "https://buy.stripe.com/fZu4gz45F0KD5FQcaB1440c",
+      },
     ],
   },
 
@@ -58,9 +75,21 @@ export const ADOPTIONS: Record<string, AdoptionFlow> = {
       rightLabel: "Coffee",
     },
     prices: [
-      { amount: 18, label: "I can love a freckle" },
-      { amount: 28, label: "I support glaze drama" },
-      { amount: 35, label: "This baby deserves a future" },
+      {
+        amount: 18,
+        label: "I can love a freckle",
+        checkoutUrl: "https://buy.stripe.com/9B67sL31Bctl9W60rT1440d",
+      },
+      {
+        amount: 28,
+        label: "I support glaze drama",
+        checkoutUrl: "https://buy.stripe.com/fZu00jeKjfFxgkugqR1440e",
+      },
+      {
+        amount: 35,
+        label: "This baby deserves a future",
+        checkoutUrl: "https://buy.stripe.com/cNi7sL45F7912tE0rT1440f",
+      },
     ],
   },
 
