@@ -364,12 +364,31 @@ export function getCollection(slug: string): Collection | undefined {
  */
 export type ProductCellData = { product: Product; collectionSlug: string };
 
-/** Cells for one collection's grid (collection page). */
+/**
+ * Slugs hidden from ALL display surfaces (home grid, per-collection grids, and
+ * the deterministic interleave) WITHOUT deleting their data/assets.
+ *
+ * Filtering happens in `collectionCells`, which every product list funnels
+ * through (`allProductCells` builds on it), so a hidden piece disappears from
+ * `/`, both collection pages, and the interleave at once. The underlying seed
+ * data + imported assets stay intact, so a piece can be `getProduct`-looked-up
+ * by slug if ever linked directly.
+ *
+ * TO UNHIDE: remove the slug from this set (one line) — nothing else changes.
+ */
+const HIDDEN_SLUGS = new Set<string>([
+  "raku-blue-holder", // darling — temporarily hidden
+  "raku-yellow-ash-tray", // ugly baby — temporarily hidden
+]);
+
+/** Cells for one collection's grid (collection page). Hidden slugs excluded. */
 export function collectionCells(collection: Collection): ProductCellData[] {
-  return collection.products.map((product) => ({
-    product,
-    collectionSlug: collection.slug,
-  }));
+  return collection.products
+    .filter((product) => !HIDDEN_SLUGS.has(product.slug))
+    .map((product) => ({
+      product,
+      collectionSlug: collection.slug,
+    }));
 }
 
 /**
