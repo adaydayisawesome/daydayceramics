@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, Smile } from "lucide-react";
-import { collections, collectionCells, getCollection } from "@/lib/products";
+import { collections, collectionCells, getCollection, getCollectionLive } from "@/lib/products";
 import { ProductGrid } from "@/components/collections/product-grid";
 import { DayMark } from "@/components/day-mark";
 
 export function generateStaticParams() {
   return collections.map((c) => ({ collection: c.slug }));
 }
+
+/** Merge live sold status from Stripe webhook storage on each request. */
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -25,7 +28,7 @@ export default async function CollectionGridPage({
   params: Promise<{ collection: string }>;
 }) {
   const { collection } = await params;
-  const data = getCollection(collection);
+  const data = await getCollectionLive(collection);
   if (!data) notFound();
 
   const other = collections.find((c) => c.slug !== data.slug);

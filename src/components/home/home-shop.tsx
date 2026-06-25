@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ShoppingBag, Smile } from "lucide-react";
 
+import type { ProductCellData } from "@/lib/products";
 import { ProductGrid } from "@/components/collections/product-grid";
 import { DayMark } from "@/components/day-mark";
-import { allProductCells } from "@/lib/products";
 
 /**
  * The site's MAIN home (`/`): one combined, full-bleed grid of EVERY product
@@ -18,8 +18,7 @@ import { allProductCells } from "@/lib/products";
  *   - RIGHT : a shopping-bag circular button with a count badge (cart isn't
  *             wired yet, so the count is a real—but static—`0` badge).
  */
-export function HomeShop() {
-  const cells = allProductCells();
+export function HomeShop({ cells }: { cells: ProductCellData[] }) {
 
   const circleButton =
     "group flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#413E3F] bg-transparent transition-colors hover:bg-[#03F94D]";

@@ -14,6 +14,7 @@
  */
 
 import generatedAssetOverrides from "./product-assets.generated.json";
+import { getRuntimeSoldSlugs } from "./sold-store";
 
 /** Centralized placeholder image — replace per product once real photos exist. */
 export const PLACEHOLDER_IMAGE = "/images/tea-cup.png";
@@ -432,6 +433,44 @@ export function allProductCells(): ProductCellData[] {
   return interleaveProportional(
     collections.map((collection) => collectionCells(collection))
   );
+}
+
+/** Apply runtime sold overlay (Redis + baseline) onto a product copy. */
+function applySoldOverlay(product: Product, soldSlugs: Set<string>): Product {
+  if (product.isSold || soldSlugs.has(product.slug)) {
+    return { ...product, isSold: true };
+  }
+  return product;
+}
+
+function collectionWithSold(
+  collection: Collection,
+  soldSlugs: Set<string>
+): Collection {
+  return {
+    ...collection,
+    products: collection.products.map((p) => applySoldOverlay(p, soldSlugs)),
+  };
+}
+
+/** Home grid cells with live sold status (Stripe webhook + Redis). */
+export async function allProductCellsLive(): Promise<ProductCellData[]> {
+  const soldSlugs = await getRuntimeSoldSlugs();
+  return interleaveProportional(
+    collections.map((collection) =>
+      collectionCells(collectionWithSold(collection, soldSlugs))
+    )
+  );
+}
+
+/** One collection with live sold status merged in. */
+export async function getCollectionLive(
+  slug: string
+): Promise<Collection | undefined> {
+  const data = getCollection(slug);
+  if (!data) return undefined;
+  const soldSlugs = await getRuntimeSoldSlugs();
+  return collectionWithSold(data, soldSlugs);
 }
 
 /** Look up a product within a collection by its SLUG (not id). */
