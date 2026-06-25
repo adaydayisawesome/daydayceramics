@@ -167,6 +167,15 @@ function specNodes(d?: ProductDetails): ReactNode[] {
     );
   }
 
+  if (d.crackLength) {
+    nodes.push(
+      <div className={SECTION_PAD}>
+        <p className={LABEL_CLASS}>CRACK LENGTH</p>
+        <p className={`${VALUE_CLASS} mt-1`}>{d.crackLength}</p>
+      </div>
+    );
+  }
+
   if (d.warning) {
     nodes.push(
       <div className={SECTION_PAD}>

@@ -20,6 +20,8 @@ export type ProductDetails = {
   temp?: string;
   /** Dimensions string, e.g. "Di 6.76in, De 2.5in, Hi 2.75in". */
   measurement?: string;
+  /** Crack length, e.g. "1cm". Rendered as its own CRACK LENGTH row. */
+  crackLength?: string;
   /** Cautionary note, e.g. "Not food safe". Rendered as its own WARNING row. */
   warning?: string;
 };
@@ -39,6 +41,77 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
     temp: "Raku firing",
     measurement: "Typical matcha bowl size",
     warning: "Not food safe",
+  },
+
+  // --- Darling pieces. Spec VALUES are intentionally verbatim (mixed casing). ---
+  "apple-melted": {
+    blurb:
+      "A glossy red apple in the middle of a tiny ceramic meltdown. Decorative only, emotionally very committed.",
+    clay: "porcelain",
+    temp: "Cone 5",
+    measurement: "to be added",
+  },
+  "apple-with-a-hole": {
+    blurb:
+      "A glossy red apple with a dramatic little hole. Decorative only, mildly suspicious.",
+    clay: "porcelain",
+    temp: "Cone 5",
+    measurement: "to be added",
+  },
+  "apple-peeled": {
+    blurb:
+      "A glossy ceramic apple caught mid-peel. Decorative only, strangely fresh, and very committed to the bit.",
+    clay: "porcelain",
+    temp: "Cone 5",
+    measurement: "to be added",
+  },
+  "blue-vase": {
+    blurb:
+      "A small blue vase with a round little belly, soft speckles, and quiet ocean mood.",
+    clay: "Bmix smooth",
+    temp: "Cone 5",
+    measurement: "Diameter: 4in; Tall: 3.5in",
+  },
+  "blue-wave-on-black-sand": {
+    blurb:
+      "A small blue cup with a wave-like glaze line over dark clay. Quiet, glossy, and a little oceanic.",
+    clay: "Night",
+    temp: "Cone 5",
+    measurement: "Diameter: 3in; Tall: 3in",
+  },
+  "guava-cup": {
+    blurb:
+      "A soft green cup with a warm pink clay interior and a matching little saucer. Sweet, round, and good for tea, tiny snacks, or a very gentle mood.",
+    clay: "BMix Smooth",
+    temp: "Cone 5",
+    measurement: "Cup: 3.5in x 2.5in; Saucer: 5in x 4.5in",
+  },
+  "guava-sharing-cup": {
+    blurb:
+      "A guava-colored little sharing cup with a lid that clearly has its own agenda. Good for tea, small pours, and tiny ceremonies.",
+    clay: "BMix Smooth",
+    temp: "Cone 5",
+    measurement: "with lid: 4.5in x 5.5in",
+  },
+  "petal-matcha-bowl": {
+    blurb:
+      "A petal-shaped matcha bowl with a soft pink outside and blue-green interior. Gentle, floral, and good for tea, small desserts, or quiet table rituals.",
+    clay: "BMix Smooth",
+    temp: "Cone 5",
+    measurement: "5.5in x 3in",
+  },
+
+  // --- Ugly pieces. No blurb; specs surface on the Q2 funnel step. ---
+  "snow-cup": {
+    clay: "porcelain",
+    temp: "Cone 5",
+    measurement: "3.5in x 2.5in",
+    crackLength: "1cm",
+  },
+  "green-celadon-tasting-cup": {
+    clay: "porcelain",
+    temp: "Cone 5",
+    measurement: "2.5in x 4in",
   },
 };
 
