@@ -232,7 +232,7 @@ const baseCollections: Collection[] = [
         title: "Apple Peeled",
         category: "objects",
         price: 65,
-        isSold: false,
+        isSold: true,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
         detailVideos: [],

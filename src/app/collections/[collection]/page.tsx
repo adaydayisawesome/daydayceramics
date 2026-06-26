@@ -11,6 +11,7 @@ export function generateStaticParams() {
 
 /** Merge live sold status from Stripe webhook storage on each request. */
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export async function generateMetadata({
   params,
