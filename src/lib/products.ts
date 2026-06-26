@@ -403,6 +403,17 @@ export function collectionCells(collection: Collection): ProductCellData[] {
     }));
 }
 
+/** Available pieces first (top row on desktop), then adopted — stable within each group. */
+export function sortCellsAvailableFirst(cells: ProductCellData[]): ProductCellData[] {
+  const available: ProductCellData[] = [];
+  const adopted: ProductCellData[] = [];
+  for (const cell of cells) {
+    if (cell.product.isSold) adopted.push(cell);
+    else available.push(cell);
+  }
+  return [...available, ...adopted];
+}
+
 /**
  * Deterministically INTERLEAVE several ordered lists into one, spreading each
  * list proportionally across the result. At every step we emit the next item
@@ -441,8 +452,10 @@ function interleaveProportional<T>(lists: T[][]): T[] {
  * (no `Math.random`), so it matches between SSR and the client.
  */
 export function allProductCells(): ProductCellData[] {
-  return interleaveProportional(
-    collections.map((collection) => collectionCells(collection))
+  return sortCellsAvailableFirst(
+    interleaveProportional(
+      collections.map((collection) => collectionCells(collection))
+    )
   );
 }
 
@@ -467,9 +480,11 @@ function collectionWithSold(
 /** Home grid cells with live sold status (Stripe webhook + Redis). */
 export async function allProductCellsLive(): Promise<ProductCellData[]> {
   const soldSlugs = await getRuntimeSoldSlugs();
-  return interleaveProportional(
-    collections.map((collection) =>
-      collectionCells(collectionWithSold(collection, soldSlugs))
+  return sortCellsAvailableFirst(
+    interleaveProportional(
+      collections.map((collection) =>
+        collectionCells(collectionWithSold(collection, soldSlugs))
+      )
     )
   );
 }

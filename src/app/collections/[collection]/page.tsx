@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, Smile } from "lucide-react";
-import { collections, collectionCells, getCollection, getCollectionLive } from "@/lib/products";
+import {
+  collections,
+  collectionCells,
+  getCollection,
+  getCollectionLive,
+  sortCellsAvailableFirst,
+} from "@/lib/products";
 import { ProductGrid } from "@/components/collections/product-grid";
 import { DayMark } from "@/components/day-mark";
 
@@ -70,7 +76,9 @@ export default async function CollectionGridPage({
       </header>
 
       <div className="flex-1">
-        <ProductGrid cells={collectionCells(data)} />
+        <ProductGrid
+          cells={sortCellsAvailableFirst(collectionCells(data))}
+        />
       </div>
     </main>
   );
