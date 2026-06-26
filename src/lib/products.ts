@@ -14,7 +14,7 @@
  */
 
 import generatedAssetOverrides from "./product-assets.generated.json";
-import { getRuntimeSoldSlugs } from "./sold-store";
+import { baselineSoldSlugs, getRuntimeSoldSlugs } from "./sold-store";
 
 /** Centralized placeholder image — replace per product once real photos exist. */
 export const PLACEHOLDER_IMAGE = "/images/tea-cup.png";
@@ -302,6 +302,7 @@ function buildCollections(
       if (!g) return product;
       return {
         ...product,
+        isSold: product.isSold || (g.isSold ?? false),
         category: g.category ?? product.category,
         defaultImage: g.defaultImage ?? product.defaultImage,
         alternateImage:
@@ -349,9 +350,19 @@ function buildCollections(
   return result;
 }
 
-export const collections: Collection[] = buildCollections(
-  baseCollections,
-  generatedPieces
+/** Apply committed baseline sold slugs onto the static catalog. */
+function withBaselineSold(cols: Collection[]): Collection[] {
+  const sold = baselineSoldSlugs();
+  return cols.map((collection) => ({
+    ...collection,
+    products: collection.products.map((p) =>
+      p.isSold || sold.has(p.slug) ? { ...p, isSold: true } : p
+    ),
+  }));
+}
+
+export const collections: Collection[] = withBaselineSold(
+  buildCollections(baseCollections, generatedPieces)
 );
 
 export function getCollection(slug: string): Collection | undefined {
