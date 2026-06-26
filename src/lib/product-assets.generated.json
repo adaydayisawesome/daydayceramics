@@ -122,7 +122,7 @@
     "detailVideos": [],
     "hoverType": "spin360",
     "price": 45,
-    "isSold": false
+    "isSold": true
   },
   "darling-babies/mug-with-half-heart-handle": {
     "category": "mugs",
