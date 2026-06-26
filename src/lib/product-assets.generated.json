@@ -24,7 +24,7 @@
     "detailVideos": [],
     "hoverType": "spin360",
     "price": 0,
-    "isSold": false
+    "isSold": true
   },
   "darling-babies/apple-with-a-hole": {
     "category": "objects",
@@ -105,7 +105,7 @@
     "detailVideos": [],
     "hoverType": "spin360",
     "price": 45,
-    "isSold": false
+    "isSold": true
   },
   "darling-babies/guava-sharing-cup": {
     "category": "cups",

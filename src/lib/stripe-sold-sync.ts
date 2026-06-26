@@ -1,13 +1,22 @@
 import Stripe from "stripe";
-import { unstable_cache } from "next/cache";
+
+const SYNC_TTL_MS = 30_000;
+let cachedSlugs: string[] | null = null;
+let cachedAt = 0;
 
 /** Slugs whose Stripe payment link has at least one completed checkout. */
-async function fetchSoldSlugsFromStripe(): Promise<string[]> {
+export async function getStripeSoldSlugs(): Promise<string[]> {
+  const now = Date.now();
+  if (cachedSlugs && now - cachedAt < SYNC_TTL_MS) return cachedSlugs;
+
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) return [];
+  if (!key) {
+    console.warn("[stripe-sold-sync] STRIPE_SECRET_KEY not set — skipping sync");
+    return [];
+  }
 
   const stripe = new Stripe(key);
-  const slugs: string[] = [];
+  const slugs = new Set<string>();
   let startingAfter: string | undefined;
 
   for (;;) {
@@ -21,21 +30,14 @@ async function fetchSoldSlugsFromStripe(): Promise<string[]> {
       if (!slug) continue;
 
       const completed = link.restrictions?.completed_sessions?.count ?? 0;
-      if (completed >= 1) {
-        slugs.push(slug);
-      }
+      if (completed >= 1) slugs.add(slug);
     }
 
     if (!page.has_more) break;
     startingAfter = page.data.at(-1)?.id;
   }
 
-  return slugs;
+  cachedSlugs = [...slugs];
+  cachedAt = now;
+  return cachedSlugs;
 }
-
-/** Cached Stripe lookup — works without Redis/webhook once STRIPE_SECRET_KEY is on Vercel. */
-export const getStripeSoldSlugs = unstable_cache(
-  fetchSoldSlugsFromStripe,
-  ["stripe-sold-slugs"],
-  { revalidate: 60 }
-);

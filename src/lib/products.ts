@@ -248,7 +248,7 @@ const baseCollections: Collection[] = [
         title: "Mug With Half Heart Handle",
         category: "mugs",
         price: 0,
-        isSold: true,
+        isSold: false,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
         detailVideos: [],
