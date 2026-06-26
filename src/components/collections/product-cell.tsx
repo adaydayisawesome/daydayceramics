@@ -135,7 +135,7 @@ function CellLabel({
     return (
       <span className="pointer-events-none absolute bottom-0 left-1/2 z-10 flex h-12 -translate-x-1/2 items-center justify-center text-[13px] leading-none font-semibold tracking-wide text-[#413E3F] md:bottom-3 md:h-11">
         <span className="line-through decoration-[#03F94D] decoration-[3px]">
-          Sold
+          Adopted
         </span>
       </span>
     );

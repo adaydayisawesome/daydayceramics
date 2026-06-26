@@ -318,7 +318,7 @@ export function ProductModal({
           <h2 className={TITLE_CLASS}>{product.title}</h2>
           {product.isSold ? (
             <span className="shrink-0 text-[18px] font-bold whitespace-nowrap text-[#413E3F] line-through decoration-[#03F94D] decoration-[3px]">
-              Sold
+              Adopted
             </span>
           ) : product.price > 0 ? (
             <span className={`${VALUE_CLASS} shrink-0 whitespace-nowrap`}>
