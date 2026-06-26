@@ -27,6 +27,7 @@ async function fetchSoldSlugsFromStripe(stripe: Stripe): Promise<string[]> {
   const slugs = new Set<string>();
   let startingAfter: string | undefined;
 
+  // Primary: limit-1 payment links record completed checkouts on the link object.
   for (;;) {
     const page = await stripe.paymentLinks.list({
       limit: 100,
@@ -59,24 +60,18 @@ async function fetchSoldSlugsFromStripe(stripe: Stripe): Promise<string[]> {
     startingAfter = page.data.at(-1)?.id;
   }
 
-  // Fallback: scan recent paid checkout sessions (covers edge cases).
+  // Lightweight fallback: only the most recent completed sessions (one page).
+  // Avoids paginating all history, which was timing out on Vercel serverless.
   try {
-    startingAfter = undefined;
-    for (;;) {
-      const page = await stripe.checkout.sessions.list({
-        status: "complete",
-        limit: 100,
-        ...(startingAfter ? { starting_after: startingAfter } : {}),
-      });
+    const page = await stripe.checkout.sessions.list({
+      status: "complete",
+      limit: 100,
+    });
 
-      for (const session of page.data) {
-        if (session.payment_status !== "paid") continue;
-        const slug = await resolveSlugFromCheckoutSession(stripe, session);
-        if (slug) slugs.add(slug);
-      }
-
-      if (!page.has_more) break;
-      startingAfter = page.data.at(-1)?.id;
+    for (const session of page.data) {
+      if (session.payment_status !== "paid") continue;
+      const slug = await resolveSlugFromCheckoutSession(stripe, session);
+      if (slug) slugs.add(slug);
     }
   } catch (err) {
     console.error("[stripe-sold-sync] checkout.sessions.list fallback failed:", err);
