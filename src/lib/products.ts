@@ -152,7 +152,7 @@ const baseCollections: Collection[] = [
         title: "Raku White Bowl",
         category: "objects",
         price: 35,
-        isSold: false,
+        isSold: true,
         defaultImage: "/images/products/feature.webp",
         detailImages: [],
         detailVideos: [],

@@ -6,11 +6,27 @@ const SYNC_TTL_MS = 30_000;
 let cachedSlugs: string[] | null = null;
 let cachedAt = 0;
 
+/** True when the link has no one-checkout limit (completed_sessions never increments). */
+function isUnlimitedPaymentLink(link: Stripe.PaymentLink): boolean {
+  return link.restrictions?.completed_sessions?.limit == null;
+}
+
+async function hasPaidCheckoutForLink(
+  stripe: Stripe,
+  paymentLinkId: string
+): Promise<boolean> {
+  const sessions = await stripe.checkout.sessions.list({
+    payment_link: paymentLinkId,
+    status: "complete",
+    limit: 10,
+  });
+  return sessions.data.some((s) => s.payment_status === "paid");
+}
+
 async function fetchSoldSlugsFromStripe(stripe: Stripe): Promise<string[]> {
   const slugs = new Set<string>();
   let startingAfter: string | undefined;
 
-  // Limit-1 payment links record completed checkouts on the link object.
   for (;;) {
     const page = await stripe.paymentLinks.list({
       limit: 100,
@@ -20,32 +36,50 @@ async function fetchSoldSlugsFromStripe(stripe: Stripe): Promise<string[]> {
     for (const link of page.data) {
       const slug = link.metadata?.slug;
       if (!slug) continue;
+
       const completed = link.restrictions?.completed_sessions?.count ?? 0;
-      if (completed >= 1) slugs.add(slug);
+      if (completed >= 1) {
+        slugs.add(slug);
+        continue;
+      }
+
+      if (isUnlimitedPaymentLink(link)) {
+        try {
+          if (await hasPaidCheckoutForLink(stripe, link.id)) slugs.add(slug);
+        } catch (err) {
+          console.error(
+            `[stripe-sold-sync] checkout lookup failed for ${slug}:`,
+            err
+          );
+        }
+      }
     }
 
     if (!page.has_more) break;
     startingAfter = page.data.at(-1)?.id;
   }
 
-  // Unlimited links (e.g. raku-white-bowl) never increment completed_sessions —
-  // read paid checkout sessions instead.
-  startingAfter = undefined;
-  for (;;) {
-    const page = await stripe.checkout.sessions.list({
-      status: "complete",
-      limit: 100,
-      ...(startingAfter ? { starting_after: startingAfter } : {}),
-    });
+  // Fallback: scan recent paid checkout sessions (covers edge cases).
+  try {
+    startingAfter = undefined;
+    for (;;) {
+      const page = await stripe.checkout.sessions.list({
+        status: "complete",
+        limit: 100,
+        ...(startingAfter ? { starting_after: startingAfter } : {}),
+      });
 
-    for (const session of page.data) {
-      if (session.payment_status !== "paid") continue;
-      const slug = await resolveSlugFromCheckoutSession(stripe, session);
-      if (slug) slugs.add(slug);
+      for (const session of page.data) {
+        if (session.payment_status !== "paid") continue;
+        const slug = await resolveSlugFromCheckoutSession(stripe, session);
+        if (slug) slugs.add(slug);
+      }
+
+      if (!page.has_more) break;
+      startingAfter = page.data.at(-1)?.id;
     }
-
-    if (!page.has_more) break;
-    startingAfter = page.data.at(-1)?.id;
+  } catch (err) {
+    console.error("[stripe-sold-sync] checkout.sessions.list fallback failed:", err);
   }
 
   return [...slugs];
