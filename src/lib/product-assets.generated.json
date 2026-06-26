@@ -153,7 +153,7 @@
     "detailVideos": [],
     "hoverType": "spin360",
     "price": 45,
-    "isSold": false
+    "isSold": true
   },
   "darling-babies/raku-blue-holder": {
     "category": "objects",
