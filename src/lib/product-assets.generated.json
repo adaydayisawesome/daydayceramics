@@ -234,6 +234,6 @@
     "detailVideos": [],
     "hoverType": "spin360",
     "price": 0,
-    "isSold": false
+    "isSold": true
   }
 }

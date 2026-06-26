@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { baselineSoldSlugs, getRuntimeSoldSlugs } from "@/lib/sold-store";
 import { getStripeSoldSlugs } from "@/lib/stripe-sold-sync";
 
-/** Debug endpoint: verify Stripe sync on Vercel (remove or protect in prod later). */
+/** Debug endpoint: verify Stripe sync on Vercel. */
 export const dynamic = "force-dynamic";
 
 export async function GET() {
@@ -16,6 +16,10 @@ export async function GET() {
         ? "unknown"
         : "missing";
 
+  const stripeEnvKeys = Object.keys(process.env)
+    .filter((name) => /STRIPE|UPSTASH|KV_REST/i.test(name))
+    .sort();
+
   try {
     const [runtime, fromStripe] = await Promise.all([
       getRuntimeSoldSlugs(),
@@ -26,11 +30,17 @@ export async function GET() {
       ok: true,
       keyConfigured: Boolean(key),
       keyMode,
+      vercelEnv: process.env.VERCEL_ENV ?? null,
+      nodeEnv: process.env.NODE_ENV ?? null,
+      stripeRelatedEnvKeys: stripeEnvKeys,
       baselineCount: baselineSoldSlugs().size,
       stripeCount: fromStripe.length,
       runtimeCount: runtime.size,
       stripeSlugs: fromStripe.sort(),
       runtimeSlugs: [...runtime].sort(),
+      hint: key
+        ? null
+        : "STRIPE_SECRET_KEY is missing at runtime. Add it under Vercel → Project → Settings → Environment Variables with Production checked, then Redeploy. Or use GitHub Actions sync (see README).",
     });
   } catch (err) {
     return NextResponse.json(
@@ -38,6 +48,8 @@ export async function GET() {
         ok: false,
         keyConfigured: Boolean(key),
         keyMode,
+        vercelEnv: process.env.VERCEL_ENV ?? null,
+        stripeRelatedEnvKeys: stripeEnvKeys,
         error: err instanceof Error ? err.message : String(err),
       },
       { status: 500 }
